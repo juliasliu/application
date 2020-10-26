@@ -1,1 +1,0 @@
-{"ast":null,"code":"import React from \"react\";\nvar __jsx = React.createElement;\nimport { format } from 'date-fns';\nexport default function DateComponent({\n  dateString\n}) {\n  return __jsx(\"time\", {\n    dateTime: dateString\n  }, format(new Date(dateString), 'LLLL\td, yyyy'));\n}","map":null,"metadata":{},"sourceType":"module"}
