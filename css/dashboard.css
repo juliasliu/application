@@ -11,6 +11,18 @@
     cursor: pointer; /* "hand" cursor */
 }
 .table-responsive {
-	height: 500px;
+	max-height: 500px;
 	overflow-y: scroll;
+}
+
+.table th, .table td {
+	padding: 0.25rem;
+}
+
+.page-link {
+	cursor: pointer;
+}
+
+.hidden {
+	display: none;
 }

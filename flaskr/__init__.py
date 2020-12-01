@@ -43,7 +43,7 @@ def create_app(test_config=None):
         # data = json.loads(request.get_json(force=True), strict=False)
         # data = request.get_json(force=True)
         # print(data["mrr"], file=sys.stdout)
-        r = RevAnalysis(request.get_json()["mrr"])
+        r = RevAnalysis(request.get_json()["arr"])
         mrr = r.mrr_by_customer()
         # rev_analysis = r.rev_analysis()
         # response.headers.add('Access-Control-Allow-Origin', '*')
