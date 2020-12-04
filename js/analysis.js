@@ -62,9 +62,8 @@ function ProcessExcel(data) {
 
   function callbackFunc(response) {
       // do something with the response
-      var mrr = {"MRR by Customer": JSON.parse(response)};
-      console.log(mrr);
-      displayData("output", mrr);
+      console.log(JSON.parse(response));
+      displayData("output", JSON.parse(response));
   }
 };
 
@@ -78,7 +77,7 @@ function displayData(type, sheets) {
 
     // subsequent lines are tbody
     output += "<tbody>";
-    for (var i=1; i<sheets[sheet].length; i++){
+    for (var i=0; i<sheets[sheet].length; i++){
       output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
     }
     output += "</tbody>";

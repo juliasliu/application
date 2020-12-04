@@ -44,10 +44,9 @@ def create_app(test_config=None):
         # data = request.get_json(force=True)
         # print(data["mrr"], file=sys.stdout)
         r = RevAnalysis(request.get_json()["arr"])
-        mrr = r.mrr_by_customer()
-        # rev_analysis = r.rev_analysis()
+        response = r.run()
         # response.headers.add('Access-Control-Allow-Origin', '*')
         # print(mrr, file=sys.stdout)
-        return mrr
+        return json.dumps(response)
 
     return app
