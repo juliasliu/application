@@ -15,6 +15,8 @@ class RevAnalysis:
     def __init__(self, json):
         print("INIT REV ANALYSIS", file=sys.stdout)
         self.arr = pd.DataFrame(json)
+        self.rev_brackets = {}
+        self.cust_brackets = {}
 
     def run(self):
         self.clean_inputs()
@@ -23,16 +25,20 @@ class RevAnalysis:
         self.mrr_by_customer()
         self.rev_cohorts()
         self.cy_ttm_revenue()
-        self.revenue_brackets()
-        self.customer_brackets()
+        self.revenue_brackets("CY", "TTM")
+        self.customer_brackets("CY", "TTM")
+        self.revenue_brackets("ARR", "ARR*")
+        self.customer_brackets("ARR", "ARR*")
 
         self.clean_outputs()
         json = {
             "MRR by Customer": self.mrr.to_dict(orient='records'),
             "Revenue Cohorts (Monthly)": self.rev_cohorts.to_dict(orient='records'),
             "Revenue Calculations": self.cy_ttm_revenue.to_dict(orient='records'),
-            "Revenue Brackets": self.rev_brackets.to_dict(orient='records'),
-            "Customer Brackets": self.cust_brackets.to_dict(orient='records')
+            "Revenue Brackets (CY, TTM)": self.rev_brackets["CY"].to_dict(orient='records'),
+            "Customer Brackets (CY, TTM)": self.cust_brackets["CY"].to_dict(orient='records'),
+            "Revenue Brackets (ARR)": self.rev_brackets["ARR"].to_dict(orient='records'),
+            "Customer Brackets (ARR)": self.cust_brackets["ARR"].to_dict(orient='records')
         }
         return json
 
@@ -60,17 +66,8 @@ class RevAnalysis:
         self.cy_ttm_revenue = self.cy_ttm_revenue.reindex(cy + ttm + yoy + arr, axis=1)
         self.cy_ttm_revenue.reset_index(inplace=True)
 
-        cy_only = [col for col in self.rev_brackets.columns if "CY" in col and "% Rev" not in col]
-        cy_rev = [col for col in self.rev_brackets.columns if "% Rev" in col and "TTM" not in col]
-        new_cy = [j for i in zip(cy_only,cy_rev) for j in i]
-        ttm_all = [col for col in self.rev_brackets.columns if "TTM" in col]
-        rev_indices = [i for i in range(self.rev_brackets.shape[1]) if "% Rev" in self.rev_brackets.columns[i]]
-        self.rev_brackets = self.rev_brackets.astype(object)
-        self.rev_brackets.iloc[:, rev_indices] = self.rev_brackets.iloc[:, rev_indices].apply(dec_to_percents)
-        self.rev_brackets = self.rev_brackets.reindex(new_cy + ttm_all, axis=1)
-        self.rev_brackets.reset_index(inplace=True)
-
-        self.cust_brackets.reset_index(inplace=True)
+        self.clean_brackets_outputs("CY", "TTM")
+        self.clean_brackets_outputs("ARR", "ARR*")
 
         print("MRR BY CUSTOMER")
         print(self.mrr, file=sys.stdout)
@@ -79,9 +76,26 @@ class RevAnalysis:
         print("CY TTM ARR")
         print(self.cy_ttm_revenue, file=sys.stdout)
         print("CY TTM BRACKETS")
-        print(self.rev_brackets, file=sys.stdout)
+        print(self.rev_brackets["CY"], file=sys.stdout)
         print("REVENUE CUSTOMER BRACKETS")
-        print(self.cust_brackets, file=sys.stdout)
+        print(self.cust_brackets["CY"], file=sys.stdout)
+        print("ARR BRACKETS")
+        print(self.rev_brackets["ARR"], file=sys.stdout)
+        print("ARR CUSTOMER BRACKETS")
+        print(self.cust_brackets["ARR"], file=sys.stdout)
+
+    def clean_brackets_outputs(self, type, not_type):
+        cy_only = [col for col in self.rev_brackets[type].columns if type in col and not_type not in col and "% Rev" not in col]
+        cy_rev = [col for col in self.rev_brackets[type].columns if "% Rev" in col and not_type not in col]
+        new_cy = [j for i in zip(cy_only,cy_rev) for j in i]
+        ttm_all = [col for col in self.rev_brackets[type].columns if not_type in col]
+        rev_indices = [i for i in range(self.rev_brackets[type].shape[1]) if "% Rev" in self.rev_brackets[type].columns[i]]
+        self.rev_brackets[type] = self.rev_brackets[type].astype(object)
+        self.rev_brackets[type].iloc[:, rev_indices] = self.rev_brackets[type].iloc[:, rev_indices].apply(dec_to_percents)
+        self.rev_brackets[type] = self.rev_brackets[type].reindex(new_cy + ttm_all, axis=1)
+        self.rev_brackets[type].reset_index(inplace=True)
+
+        self.cust_brackets[type].reset_index(inplace=True)
 
     def mrr_by_customer(self):
         # 1. MRR BY CUSTOMER
@@ -122,7 +136,7 @@ class RevAnalysis:
         mrr_ttm = self.mrr.iloc[:, -12:]
         self.cy_ttm_revenue["TTM "+mrr_ttm.columns[-1]] = mrr_ttm.sum(axis=1)
         # Calculate ARR for the last month
-        self.cy_ttm_revenue[mrr_ttm.columns[-1]+" ARR"] = mrr_ttm.iloc[:, -1:]*12
+        self.cy_ttm_revenue[mrr_ttm.columns[-1]+" ARR*"] = mrr_ttm.iloc[:, -1:]*12
 
         # Calculate CY YoY for each pair of CYs
         cy_labels = [label for label in self.cy_ttm_revenue.columns if "CY" in label]
@@ -135,23 +149,23 @@ class RevAnalysis:
 
         self.cy_ttm_revenue.drop(self.cy_ttm_revenue.tail(1).index, inplace=True)
 
-    def revenue_brackets(self):
+    def revenue_brackets(self, type, not_type):
         brackets = [0, 10000, 50000, 100000, 250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 4000000]
-        self.rev_brackets = pd.DataFrame(index=np.arange(len(brackets)))
-        self.rev_brackets.set_index(pd.Series(brackets, name=''), inplace=True)
+        self.rev_brackets[type] = pd.DataFrame(index=np.arange(len(brackets)))
+        self.rev_brackets[type].set_index(pd.Series(brackets, name=''), inplace=True)
 
         # Create columns
-        cy_labels = [label for label in self.cy_ttm_revenue.columns if "CY" in label and "YOY" not in label]
+        cy_labels = [col for col in self.cy_ttm_revenue.columns if type in col and not_type not in col and "YOY" not in col]
         cy_columns = self.cy_ttm_revenue.loc[:,cy_labels]
         for cy in cy_columns:
-            self.rev_brackets[cy] = pd.Series()
+            self.rev_brackets[type][cy] = pd.Series()
         for cy in cy_columns:
-            self.rev_brackets['% Rev '+cy] = pd.Series()
+            self.rev_brackets[type]['% Rev '+cy] = pd.Series()
 
-        ttm = [col for col in self.cy_ttm_revenue.columns if "TTM" in col][0]
+        ttm = [col for col in self.cy_ttm_revenue.columns if not_type in col][0]
         ttm_column = self.cy_ttm_revenue[ttm]
-        self.rev_brackets[ttm] = pd.Series()
-        self.rev_brackets['% Rev '+ttm] = pd.Series()
+        self.rev_brackets[type][ttm] = pd.Series()
+        self.rev_brackets[type]['% Rev '+ttm] = pd.Series()
 
         for b in brackets:
             # Count how many companies fall in each bracket for CY
@@ -164,15 +178,15 @@ class RevAnalysis:
             ttm_rev_percents = ttm_column.iloc[:-1][ttm_column.iloc[:-1] > b].sum()/ttm_column.iloc[-1]
 
             cy_data = list(cy_counts.values) + list(cy_rev_percents.values) + [ttm_counts] + [ttm_rev_percents]
-            self.rev_brackets.loc[b] = cy_data
+            self.rev_brackets[type].loc[b] = cy_data
 
-    def customer_brackets(self):
-        self.cust_brackets = pd.DataFrame(index=np.arange(self.rev_brackets.shape[0]))
-        self.cust_brackets.set_index(pd.Series(self.rev_brackets.index, name='Customer Type'), inplace=True)
+    def customer_brackets(self, type, not_type):
+        self.cust_brackets[type] = pd.DataFrame(index=np.arange(self.rev_brackets[type].shape[0]))
+        self.cust_brackets[type].set_index(pd.Series(self.rev_brackets[type].index, name='Customer Type'), inplace=True)
 
-        ttm = [col for col in self.rev_brackets.columns if "TTM" in col][0]
-        ttm_column = list(self.rev_brackets[ttm])
-        self.cust_brackets['# Customers'] = [ttm_column[i-1] - ttm_column[i] for i in range(1, self.cust_brackets.shape[0])] + [0]
+        ttm = [col for col in self.rev_brackets[type].columns if not_type in col][0]
+        ttm_column = list(self.rev_brackets[type][ttm])
+        self.cust_brackets[type]['# Customers'] = [ttm_column[i-1] - ttm_column[i] for i in range(1, self.cust_brackets[type].shape[0])] + [0]
 
     def rev_analysis(self):
         # 1. REV ANALYSIS
