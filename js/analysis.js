@@ -47,16 +47,14 @@ function ProcessExcel(data) {
   // Display data
   displayData("input", sheets);
 
-  var postData = { arr: sheets["ARR by Customer"] };
-  console.log(postData);
-  console.log(JSON.stringify(postData));
+  console.log(JSON.stringify(sheets));
 
   // Run python script analysis
   $.ajax({
       type: "POST",
-      url: "http://127.0.0.1:5000/rev_analysis",
+      url: "http://127.0.0.1:5000/analysis",
       contentType: 'application/json',
-      data: JSON.stringify(postData),
+      data: JSON.stringify(sheets),
       success: callbackFunc
   });
 

@@ -5,6 +5,7 @@ import sys
 import json
 
 from .rev_analysis import *
+from .cohort_analysis import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -33,10 +34,12 @@ def create_app(test_config=None):
     def hello():
         return "Hello World!"
 
-    @app.route('/rev_analysis', methods=['POST'])
-    def rev_analysis():
-        r = RevAnalysis(request.get_json()["arr"])
-        response = r.run()
-        return json.dumps(response)
+    @app.route('/analysis', methods=['POST'])
+    def analysis():
+        r = RevAnalysis(request.get_json()["ARR by Customer"])
+        r_res = r.run()
+        c = CohortAnalysis(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
+        c_res = c.run()
+        return json.dumps({**r_res, **c_res})
 
     return app

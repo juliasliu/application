@@ -6,21 +6,20 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import collections
-import sys
 
 from .helpers import *
 
 class RevAnalysis:
 
     def __init__(self, json):
-        print("INIT REV ANALYSIS", file=sys.stdout)
+        print("INIT REV ANALYSIS")
         self.arr = pd.DataFrame(json)
         self.rev_brackets = {}
         self.cust_brackets = {}
 
     def run(self):
         self.clean_inputs()
-        print(self.arr, file=sys.stdout)
+        print(self.arr)
 
         self.mrr_by_customer()
         self.rev_cohorts()
@@ -70,19 +69,19 @@ class RevAnalysis:
         self.clean_brackets_outputs("ARR", "ARR*")
 
         print("MRR BY CUSTOMER")
-        print(self.mrr, file=sys.stdout)
+        print(self.mrr)
         print("REVENUE COHORTS")
-        print(self.rev_cohorts, file=sys.stdout)
+        print(self.rev_cohorts)
         print("CY TTM ARR")
-        print(self.cy_ttm_revenue, file=sys.stdout)
+        print(self.cy_ttm_revenue)
         print("CY TTM BRACKETS")
-        print(self.rev_brackets["CY"], file=sys.stdout)
+        print(self.rev_brackets["CY"])
         print("REVENUE CUSTOMER BRACKETS")
-        print(self.cust_brackets["CY"], file=sys.stdout)
+        print(self.cust_brackets["CY"])
         print("ARR BRACKETS")
-        print(self.rev_brackets["ARR"], file=sys.stdout)
+        print(self.rev_brackets["ARR"])
         print("ARR CUSTOMER BRACKETS")
-        print(self.cust_brackets["ARR"], file=sys.stdout)
+        print(self.cust_brackets["ARR"])
 
     def clean_brackets_outputs(self, type, not_type):
         cy_only = [col for col in self.rev_brackets[type].columns if type in col and not_type not in col and "% Rev" not in col]
@@ -98,12 +97,10 @@ class RevAnalysis:
         self.cust_brackets[type].reset_index(inplace=True)
 
     def mrr_by_customer(self):
-        # 1. MRR BY CUSTOMER
         self.mrr = self.arr.copy()/12
         self.mrr.loc["ARR"] = (self.mrr.iloc[-1:]*12).iloc[0]
 
     def rev_cohorts(self):
-        # 1. REV COHORTS
         first_rev = np.argmax(self.mrr.values!=0.0,axis=1)
         last_rev = self.mrr.shape[1] - np.argmax(self.mrr.iloc[:, ::-1].values!=0.0,axis=1) - 1
 
@@ -117,7 +114,6 @@ class RevAnalysis:
         self.rev_cohorts.drop(self.rev_cohorts.tail(2).index, inplace=True)
 
     def cy_ttm_revenue(self):
-        # 1. CY, TTM, ARR
         self.cy_ttm_revenue = pd.DataFrame(index=np.arange(self.mrr.shape[0]))
         self.cy_ttm_revenue.set_index(self.mrr.index, inplace=True)
 
@@ -187,11 +183,3 @@ class RevAnalysis:
         ttm = [col for col in self.rev_brackets[type].columns if not_type in col][0]
         ttm_column = list(self.rev_brackets[type][ttm])
         self.cust_brackets[type]['# Customers'] = [ttm_column[i-1] - ttm_column[i] for i in range(1, self.cust_brackets[type].shape[0])] + [0]
-
-    def rev_analysis(self):
-        # 1. REV ANALYSIS
-        print("REVENUE ANALYSIS")
-        rev_analysis_final = self.data/12
-
-        print(rev_analysis_final, file=sys.stdout)
-        return rev_analysis_final.to_json(orient='records')
