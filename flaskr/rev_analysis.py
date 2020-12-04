@@ -53,7 +53,9 @@ class RevAnalysis:
     def rev_cohorts(self):
         # 1. REV COHORTS
         first_rev = np.argmax(self.mrr.values!=0.0,axis=1)
-        last_rev = self.mrr.shape[1] - np.argmax(self.mrr.values[::-1]!=0.0,axis=1) - 1
+        last_rev = self.mrr.shape[1] - np.argmax(self.mrr.iloc[:, ::-1].values!=0.0,axis=1) - 1
+        print(np.argmax(self.mrr.iloc[:, ::-1].values!=0.0,axis=1))
+        print(last_rev)
 
         self.rev_cohorts = pd.DataFrame(index=np.arange(self.mrr.shape[0]))
         self.rev_cohorts.set_index(self.mrr.index, inplace=True)
