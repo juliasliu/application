@@ -35,18 +35,8 @@ def create_app(test_config=None):
 
     @app.route('/rev_analysis', methods=['POST'])
     def rev_analysis():
-        # print("IS REQUEST JSON FORMAT", file=sys.stdout)
-        # print(request.is_json, file=sys.stdout)
-        # print("IS JSON FORMATTED CORRECTLY", file=sys.stdout)
-        # print(request.get_json(force=True), file=sys.stdout)
-        # print("WHAT IS JSON OBJECT", file=sys.stdout)
-        # data = json.loads(request.get_json(force=True), strict=False)
-        # data = request.get_json(force=True)
-        # print(data["mrr"], file=sys.stdout)
         r = RevAnalysis(request.get_json()["arr"])
         response = r.run()
-        # response.headers.add('Access-Control-Allow-Origin', '*')
-        # print(mrr, file=sys.stdout)
         return json.dumps(response)
 
     return app
