@@ -15,6 +15,8 @@ def dec_to_dollars(x):
     return x
 
 def dec_to_percents(x):
+    if not isinstance(x, list):
+        x = list(x)
     for i in range(len(x)):
         if x[i] != 0:
             x[i] = "{:.2%}".format(x[i])
