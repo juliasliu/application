@@ -6,6 +6,7 @@ import json
 
 from .rev_analysis import *
 from .cohort_analysis import *
+from .dashboard import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -40,6 +41,8 @@ def create_app(test_config=None):
         r_res = r.run()
         c = CohortAnalysis(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
         c_res = c.run()
-        return json.dumps({**r_res, **c_res})
+        d = Dashboard(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
+        d_res = d.run()
+        return json.dumps({**r_res, **c_res, **d_res})
 
     return app

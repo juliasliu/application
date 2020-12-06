@@ -53,7 +53,8 @@ class RevAnalysis:
         self.mrr.reset_index(inplace=True)
 
         self.rev_cohorts = self.rev_cohorts.astype(object)
-        self.rev_cohorts.iloc[:, 1:] = self.rev_cohorts.iloc[:, 1:].apply(dec_to_dollars_list)
+        self.rev_cohorts.iloc[:, 1:-1] = self.rev_cohorts.iloc[:, 1:-1].apply(zero_to_blank_list)
+        self.rev_cohorts.iloc[:, 1:-1] = self.rev_cohorts.iloc[:, 1:-1].apply(dec_to_dollars_list)
         self.rev_cohorts.reset_index(inplace=True)
 
         cy = [col for col in self.cy_ttm_revenue.columns if "CY" in col and "YOY" not in col]
@@ -134,6 +135,9 @@ class RevAnalysis:
         self.rev_cohorts['Cohort'] = pd.to_datetime(self.rev_cohorts['Cohort']).dt.strftime('%m/%Y')
         self.rev_cohorts['Initial Rev'] = [self.mrr.iloc[i][first_rev[i]] for i in range(len(first_rev))]
         self.rev_cohorts['End Rev'] = [self.mrr.iloc[i][last_rev[i]] for i in range(len(last_rev))]
+        self.rev_cohorts['End'] = self.mrr.columns[last_rev]
+        self.rev_cohorts['End'] = pd.to_datetime(self.rev_cohorts['End']).dt.strftime('%m/%Y')
+        self.rev_cohorts = self.rev_cohorts.apply(lambda x: ["N/A"]+list(x.iloc[1:-1])+["N/A"] if (x['Initial Rev']==0 and x['End Rev']==0) else x, axis=1)
 
         self.rev_cohorts.drop(self.rev_cohorts.tail(2).index, inplace=True)
 
