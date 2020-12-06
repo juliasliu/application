@@ -43,25 +43,29 @@ class RevAnalysis:
 
     def clean_inputs(self):
         self.arr.set_index("Customer", inplace=True)
-        self.arr.apply(dollars_to_dec)
+        self.arr.apply(dollars_to_dec_list)
 
     def clean_outputs(self):
-        self.mrr.apply(dec_to_dollars)
+        self.mrr = self.mrr.astype(object)
+        self.mrr.apply(zero_to_blank_list)
+        self.mrr.apply(dec_to_dollars_list)
         self.mrr.reset_index(inplace=True)
 
         self.rev_cohorts = self.rev_cohorts.astype(object)
-        self.rev_cohorts.iloc[:, 1:] = self.rev_cohorts.iloc[:, 1:].apply(dec_to_dollars)
+        self.rev_cohorts.iloc[:, 1:] = self.rev_cohorts.iloc[:, 1:].apply(dec_to_dollars_list)
         self.rev_cohorts.reset_index(inplace=True)
 
         cy = [col for col in self.cy_ttm_revenue.columns if "CY" in col and "YOY" not in col]
         ttm = [col for col in self.cy_ttm_revenue.columns if "TTM" in col]
         yoy = [col for col in self.cy_ttm_revenue.columns if "YOY" in col]
-        yoy_indices = [i for i in range(self.cy_ttm_revenue.shape[1]) if "YOY" in self.cy_ttm_revenue.columns[i]]
+        yoy_indices = [i for i in range(self.cy_ttm_revenue.shape[1]) if "YOY" in self.cy_ttm_revenue.columns[i] or "Total ARR" in self.cy_ttm_revenue.columns[i]]
         not_yoy_indices = list(set(range(self.cy_ttm_revenue.shape[1])) - set(yoy_indices))
         arr = [col for col in self.cy_ttm_revenue.columns if "ARR" in col]
         self.cy_ttm_revenue = self.cy_ttm_revenue.astype(object)
-        self.cy_ttm_revenue.iloc[:, not_yoy_indices] = self.cy_ttm_revenue.iloc[:, not_yoy_indices].apply(dec_to_dollars)
-        self.cy_ttm_revenue.iloc[:, yoy_indices] = self.cy_ttm_revenue.iloc[:, yoy_indices].apply(dec_to_percents)
+        self.cy_ttm_revenue.apply(zero_to_blank_list)
+        self.cy_ttm_revenue.iloc[:, not_yoy_indices] = self.cy_ttm_revenue.iloc[:, not_yoy_indices].apply(dec_to_dollars_list)
+        self.cy_ttm_revenue.iloc[:, yoy_indices] = self.cy_ttm_revenue.iloc[:, yoy_indices].apply(dec_to_percents_list)
+        self.cy_ttm_revenue.sort_values(self.cy_ttm_revenue.columns[-1])
         self.cy_ttm_revenue = self.cy_ttm_revenue.reindex(cy + ttm + yoy + arr, axis=1)
         self.cy_ttm_revenue.reset_index(inplace=True)
 
@@ -89,11 +93,21 @@ class RevAnalysis:
         new_cy = [j for i in zip(cy_only,cy_rev) for j in i]
         ttm_all = [col for col in self.rev_brackets[type].columns if not_type in col]
         rev_indices = [i for i in range(self.rev_brackets[type].shape[1]) if "% Rev" in self.rev_brackets[type].columns[i]]
+        not_rev_indices = list(set(range(self.rev_brackets[type].shape[1])) - set(rev_indices))
         self.rev_brackets[type] = self.rev_brackets[type].astype(object)
-        self.rev_brackets[type].iloc[:, rev_indices] = self.rev_brackets[type].iloc[:, rev_indices].apply(dec_to_percents)
+        self.rev_brackets[type].iloc[:, not_rev_indices] = self.rev_brackets[type].iloc[:, not_rev_indices].apply(numbers_with_commas_list)
+        self.rev_brackets[type].iloc[:, rev_indices] = self.rev_brackets[type].iloc[:, rev_indices].apply(dec_to_percents_list)
         self.rev_brackets[type] = self.rev_brackets[type].reindex(new_cy + ttm_all, axis=1)
+        self.rev_brackets[type].index = self.rev_brackets[type].index.map(dec_to_dollars)
         self.rev_brackets[type].reset_index(inplace=True)
 
+        self.cust_brackets[type] = self.cust_brackets[type].astype(object)
+        self.cust_brackets[type].apply(numbers_with_commas_list)
+        self.cust_brackets[type].index = self.cust_brackets[type].index.map(dec_to_dollars)
+        cust_brackets_index = self.cust_brackets[type].index
+        index_labels_dict = {cust_brackets_index[i]: str(cust_brackets_index[i])+"-"+str(cust_brackets_index[i+1]) for i in range(len(cust_brackets_index)-1)}
+        index_labels_dict[cust_brackets_index[-1]] = str(cust_brackets_index[-1])+'+'
+        self.cust_brackets[type].rename(index=index_labels_dict, inplace=True)
         self.cust_brackets[type].reset_index(inplace=True)
 
     def mrr_by_customer(self):
@@ -130,9 +144,11 @@ class RevAnalysis:
 
         # Calculate TTM for the last month
         mrr_ttm = self.mrr.iloc[:, -12:]
-        self.cy_ttm_revenue["TTM "+mrr_ttm.columns[-1]] = mrr_ttm.sum(axis=1)
+        self.cy_ttm_revenue["TTM "+pd.to_datetime(mrr_ttm.columns[-1]).strftime('%m/%Y')] = mrr_ttm.sum(axis=1)
         # Calculate ARR for the last month
-        self.cy_ttm_revenue[mrr_ttm.columns[-1]+" ARR*"] = mrr_ttm.iloc[:, -1:]*12
+        self.cy_ttm_revenue[pd.to_datetime(mrr_ttm.columns[-1]).strftime('%m/%Y')+" ARR*"] = mrr_ttm.iloc[:, -1:]*12
+        # Calculate % of Total ARR for last month
+        self.cy_ttm_revenue["% Total ARR"] = mrr_ttm.iloc[:, -1:]*12/mrr_ttm.loc["ARR"].iloc[-1]
 
         # Calculate CY YoY for each pair of CYs
         cy_labels = [label for label in self.cy_ttm_revenue.columns if "CY" in label]
@@ -151,7 +167,7 @@ class RevAnalysis:
         self.rev_brackets[type].set_index(pd.Series(brackets, name=''), inplace=True)
 
         # Create columns
-        cy_labels = [col for col in self.cy_ttm_revenue.columns if type in col and not_type not in col and "YOY" not in col]
+        cy_labels = [col for col in self.cy_ttm_revenue.columns if type in col and not_type not in col and "YOY" not in col and "Total" not in col]
         cy_columns = self.cy_ttm_revenue.loc[:,cy_labels]
         for cy in cy_columns:
             self.rev_brackets[type][cy] = pd.Series()
@@ -165,13 +181,13 @@ class RevAnalysis:
 
         for b in brackets:
             # Count how many companies fall in each bracket for CY
-            cy_counts = (cy_columns.iloc[:-1] > b).sum()
+            cy_counts = cy_columns.apply(lambda x: x.iloc[:-1].apply(lambda y: y >= b and y > 0)).sum()
             # Calculate % revenue for each CY bracket
-            cy_rev_percents = cy_columns.apply(lambda x: x.iloc[:-1][x.iloc[:-1] > b].sum()/x.iloc[-1])
+            cy_rev_percents = cy_columns.apply(lambda x: x.iloc[:-1][x.iloc[:-1].apply(lambda y: y >= b and y > 0)].sum()/x.iloc[-1])
             # Count how many companies fall in each bracket for TTM
-            ttm_counts = (ttm_column.iloc[:-1] > b).sum()
+            ttm_counts = ttm_column.iloc[:-1].apply(lambda y: y >= b and y > 0).sum()
             # Calculate % revenue for each TTM bracket
-            ttm_rev_percents = ttm_column.iloc[:-1][ttm_column.iloc[:-1] > b].sum()/ttm_column.iloc[-1]
+            ttm_rev_percents = ttm_column.iloc[:-1][ttm_column.iloc[:-1].apply(lambda y: y >= b and y > 0)].sum()/ttm_column.iloc[-1]
 
             cy_data = list(cy_counts.values) + list(cy_rev_percents.values) + [ttm_counts] + [ttm_rev_percents]
             self.rev_brackets[type].loc[b] = cy_data

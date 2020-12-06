@@ -15,6 +15,7 @@ class CohortAnalysis:
         print("INIT COHORT ANALYSIS")
         self.mrr = pd.DataFrame(mrr)
         self.cohorts = pd.DataFrame(cohorts)
+        self.missing_months = []
 
     def run(self):
         self.clean_inputs()
@@ -39,32 +40,68 @@ class CohortAnalysis:
 
     def clean_inputs(self):
         self.mrr.set_index("Customer", inplace=True)
-        self.mrr.apply(dollars_to_dec)
+        self.mrr.apply(dollars_to_dec_list)
         self.cohorts.set_index("Customer", inplace=True)
-        self.cohorts.iloc[:, 1:] = self.cohorts.iloc[:, 1:].apply(dollars_to_dec)
+        self.cohorts.iloc[:, 1:] = self.cohorts.iloc[:, 1:].apply(dollars_to_dec_list)
 
     def clean_outputs(self):
-        self.rev_cohorts[0] = pd.to_datetime(self.rev_cohorts[0]).dt.strftime('%m/%Y')
-        self.rev_cohorts.iloc[:, 1:] = self.rev_cohorts.iloc[:, 1:].apply(na_to_zero)
-        self.rev_cohorts.iloc[:, 1:] = self.rev_cohorts.iloc[:, 1:].apply(dec_to_dollars)
+        cohort_months = list(pd.to_datetime(self.rev_cohorts.index).strftime('%m/%Y'))
+        years = [m.split("/")[1] for m in cohort_months]
+        counter = collections.Counter(years)
+        all_months = []
+        for year in counter.keys():
+            all_months.extend(["{:02d}".format(i+1)+"/"+year for i in range(12)])
+        self.missing_months = list(set(all_months) - set(cohort_months))
+        last_month = str_to_datetime(cohort_months[-1])
+        self.missing_months = list(filter(lambda m: str_to_datetime(m) <= last_month, self.missing_months))
 
-        self.cust_cohorts[0] = pd.to_datetime(self.cust_cohorts[0]).dt.strftime('%m/%Y')
-        self.cust_cohorts.iloc[:, 1:] = self.cust_cohorts.iloc[:, 1:].apply(na_to_zero)
-        self.cust_cohorts.iloc[:, 1:] = self.cust_cohorts.iloc[:, 1:].apply(zero_to_blank)
+        self.clean_outputs_add_empty_rows(self.rev_cohorts)
+        self.clean_outputs_add_empty_rows(self.cust_cohorts)
+        self.clean_outputs_add_empty_rows(self.rev_retention)
+        self.clean_outputs_add_empty_rows(self.logo_retention)
+        self.clean_outputs_add_empty_rows(self.cumulative)
 
-        self.rev_retention[0] = pd.to_datetime(self.rev_retention[0]).dt.strftime('%m/%Y')
-        self.rev_retention.iloc[:, 1:] = self.rev_retention.iloc[:, 1:].apply(na_to_zero)
-        self.rev_retention.iloc[:, 1:] = self.rev_retention.iloc[:, 1:].apply(dec_to_percents)
+        col_labels_dict = {col: "M"+str(col+1) for col in self.rev_cohorts.columns}
 
-        self.logo_retention[0] = pd.to_datetime(self.logo_retention[0]).dt.strftime('%m/%Y')
-        self.logo_retention.iloc[:, 1:] = self.logo_retention.iloc[:, 1:].apply(na_to_zero)
-        self.logo_retention.iloc[:, 1:] = self.logo_retention.iloc[:, 1:].apply(dec_to_percents)
+        indices = [i for i in range(self.cumulative.shape[1]) if "# Customers" != self.cumulative.columns[i]]
 
-        self.cumulative[0] = pd.to_datetime(self.cumulative[0]).dt.strftime('%m/%Y')
-        indices = [i for i in range(self.cumulative.shape[1]) if "# Customers" != self.cumulative.columns[i] and i!=0]
-        self.cumulative.iloc[:, 1:] = self.cumulative.iloc[:, 1:].apply(na_to_zero)
-        self.cumulative.iloc[:, indices] = self.cumulative.iloc[:, indices].apply(dec_to_dollars)
-        self.cumulative = self.cumulative.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
+        self.rev_cohorts = self.rev_cohorts.astype(object)
+        self.rev_cohorts.apply(na_to_zero_list)
+        self.rev_cohorts.apply(zero_to_blank_list)
+        self.rev_cohorts.apply(dec_to_dollars_list)
+        self.rev_cohorts.reset_index(inplace=True)
+        self.rev_cohorts.rename(columns=col_labels_dict, inplace=True)
+
+        self.cust_cohorts = self.cust_cohorts.astype(object)
+        self.cust_cohorts.apply(na_to_zero_list)
+        self.cust_cohorts.apply(zero_to_blank_list)
+        self.cust_cohorts.apply(numbers_with_commas_list)
+        self.cust_cohorts.reset_index(inplace=True)
+        self.cust_cohorts.rename(columns=col_labels_dict, inplace=True)
+
+        self.rev_retention = self.rev_retention.astype(object)
+        self.rev_retention.apply(na_to_zero_list)
+        self.rev_retention.apply(zero_to_blank_list)
+        self.rev_retention.iloc[:, indices] = self.rev_retention.iloc[:, indices].apply(dec_to_percents_list)
+        self.rev_retention = self.rev_retention.reindex(['# Customers'] + list(self.cumulative.columns[1:-1]), axis=1)
+        self.rev_retention.reset_index(inplace=True)
+        self.rev_retention.rename(columns=col_labels_dict, inplace=True)
+
+        self.logo_retention = self.logo_retention.astype(object)
+        self.logo_retention.apply(na_to_zero_list)
+        self.logo_retention.apply(zero_to_blank_list)
+        self.logo_retention.iloc[:, indices] = self.logo_retention.iloc[:, indices].apply(dec_to_percents_list)
+        self.logo_retention = self.logo_retention.reindex(['# Customers'] + list(self.cumulative.columns[1:-1]), axis=1)
+        self.logo_retention.reset_index(inplace=True)
+        self.logo_retention.rename(columns=col_labels_dict, inplace=True)
+
+        self.cumulative = self.cumulative.astype(object)
+        self.cumulative.apply(na_to_zero_list)
+        self.cumulative.apply(zero_to_blank_list)
+        self.cumulative.iloc[:, indices] = self.cumulative.iloc[:, indices].apply(dec_to_dollars_list)
+        self.cumulative = self.cumulative.reindex(['# Customers'] + list(self.cumulative.columns[1:-1]), axis=1)
+        self.cumulative.reset_index(inplace=True)
+        self.cumulative.rename(columns=col_labels_dict, inplace=True)
 
         print("REVENUE COHORTS")
         print(self.rev_cohorts)
@@ -77,32 +114,50 @@ class CohortAnalysis:
         print("CUMULATIVE")
         print(self.cumulative)
 
+    def clean_outputs_add_empty_rows(self, data):
+        print(data)
+        for m in self.missing_months:
+            print("change loc")
+            data.loc[str_to_datetime(m)] = ['NaN'] * data.shape[1]
+        data.sort_index(inplace=True)
+        data.index = pd.to_datetime(data.index).strftime('%m/%Y')
+
     def revenue_cohorts(self):
         self.mrr_cohorts = self.mrr.copy()
         self.mrr_cohorts.columns = pd.to_datetime(self.mrr_cohorts.columns).strftime('%m/%Y')
         self.mrr_cohorts['Cohort'] = pd.to_datetime(self.cohorts['Cohort'])
-        self.rev_cohorts = self.mrr_cohorts.groupby(by=['Cohort'], as_index=False).sum()
-        self.rev_cohorts.sort_values("Cohort")
+        self.rev_cohorts = self.mrr_cohorts.groupby(by=['Cohort']).sum()
+        self.rev_cohorts.sort_values('Cohort')
         self.rev_cohorts = self.rev_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.rev_cohorts.set_axis(self.rev_cohorts.columns[self.rev_cohorts.columns], axis=1, inplace=False)
 
     def customer_cohorts(self):
-        self.cust_cohorts = self.mrr_cohorts.groupby(by=['Cohort'], as_index=False).agg(lambda x: x.ne(0).sum())
-        self.cust_cohorts.sort_values("Cohort")
+        self.cust_cohorts = self.mrr_cohorts.groupby(by=['Cohort']).agg(lambda x: x.ne(0).sum())
+        self.cust_cohorts.sort_values('Cohort')
         self.cust_cohorts = self.cust_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.cust_cohorts.set_axis(self.cust_cohorts.columns[self.cust_cohorts.columns], axis=1, inplace=False)
 
     def revenue_retention(self):
-        self.rev_retention = self.rev_cohorts.copy()
-        self.rev_retention.iloc[:, 1:] = self.rev_retention.iloc[:, 1:].apply(lambda x: x/x.iloc[0], axis=1)
+        self.rev_retention = pd.DataFrame(index=np.arange(self.rev_cohorts.shape[0]))
+        self.rev_retention.set_index(self.rev_cohorts.index, inplace=True)
+        self.rev_retention = self.rev_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
+        self.rev_retention['# Customers'] = self.cust_cohorts.iloc[:, 0]
+
+        # add min, medium, mean, max percentiles
 
     def logo_retention(self):
-        self.logo_retention = self.cust_cohorts.copy()
-        self.logo_retention.iloc[:, 1:] = self.logo_retention.iloc[:, 1:].apply(lambda x: x/x.iloc[0], axis=1)
+        self.logo_retention = pd.DataFrame(index=np.arange(self.cust_cohorts.shape[0]))
+        self.logo_retention.set_index(self.cust_cohorts.index, inplace=True)
+        self.logo_retention = self.cust_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
+        self.logo_retention['# Customers'] = self.cust_cohorts.iloc[:, 0]
+
+        # add min, medium, mean, max percentiles
 
     def cumulative(self):
         self.cumulative = self.rev_cohorts.copy()
-        self.cumulative.iloc[:, 1:] = self.cumulative.iloc[:, 1:].apply(pd.DataFrame.cumsum, axis=1)
-        self.cumulative['# Customers'] = self.cust_cohorts.iloc[:, 1]
-        self.cumulative.iloc[:, 1:] = self.cumulative.iloc[:, 1:].apply(lambda x: x/x.loc['# Customers'], axis=1)
-        self.cumulative['# Customers'] = self.cust_cohorts.iloc[:, 1]
+        self.cumulative.apply(pd.DataFrame.cumsum, axis=1)
+        self.cumulative['# Customers'] = self.cust_cohorts.iloc[:, 0]
+        self.cumulative.apply(lambda x: x/x.loc['# Customers'], axis=1)
+        self.cumulative['# Customers'] = self.cust_cohorts.iloc[:, 0]
+
+        # add min, medium, mean, max percentiles

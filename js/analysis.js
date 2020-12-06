@@ -69,6 +69,7 @@ function displayData(type, sheets) {
 
   for (sheet in sheets) {
     // first line is thead
+    // be able to hide columns
     var output = "<thead>";
     output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
     output += "</thead>";
@@ -85,7 +86,7 @@ function displayData(type, sheets) {
     // wrap entire table
     output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
 
-    // add table and pagination link
+    // add table and pagination link dropdown
     if (type == 'input') {
       $("#input-table-container").append(output);
       $("#input-file-pagination ul").append('<li class="page-item" id="' + sheetNameFiltered + '"><a class="page-link" onclick="sheetTabClicked(\'input\', \'' + sheet + '\')">' + sheet + '</a></li>');

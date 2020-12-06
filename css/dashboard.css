@@ -13,14 +13,21 @@
 .table-responsive {
 	max-height: 500px;
 	overflow-y: scroll;
+	font-size: 0.75em;
 }
 
 .table th, .table td {
 	padding: 0.25rem;
 }
 
+.card-body nav {
+	width: 100%;
+  overflow-x: scroll;
+}
+
 .page-link {
 	cursor: pointer;
+	height: 100%;
 }
 
 .hidden {
