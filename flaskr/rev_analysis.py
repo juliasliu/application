@@ -14,6 +14,7 @@ class RevAnalysis:
     def __init__(self, json):
         print("INIT REV ANALYSIS")
         self.arr = pd.DataFrame(json)
+        self.years = []
         self.rev_brackets = {}
         self.cust_brackets = {}
 
@@ -114,6 +115,13 @@ class RevAnalysis:
         self.mrr = self.arr.copy()/12
         self.mrr.loc["ARR"] = (self.mrr.iloc[-1:]*12).iloc[0]
 
+        # Only keep the last 3 years
+        self.years = pd.to_datetime(self.mrr.columns).strftime('%Y')
+        counter = collections.Counter(self.years)
+        last_index = 36+counter[max(counter.keys())]
+        self.mrr = self.mrr.iloc[:, -last_index:]
+        self.years = pd.to_datetime(self.mrr.columns).strftime('%Y')
+
     def rev_cohorts(self):
         first_rev = np.argmax(self.mrr.values!=0.0,axis=1)
         last_rev = self.mrr.shape[1] - np.argmax(self.mrr.iloc[:, ::-1].values!=0.0,axis=1) - 1
@@ -131,12 +139,11 @@ class RevAnalysis:
         self.cy_ttm_revenue = pd.DataFrame(index=np.arange(self.mrr.shape[0]))
         self.cy_ttm_revenue.set_index(self.mrr.index, inplace=True)
 
-        years = pd.to_datetime(self.mrr.columns).strftime('%Y')
-        counter = collections.Counter(years)
+        counter = collections.Counter(self.years)
         for year in counter.keys():
             if counter[year] == 12:
                 # Calculate CY for each full year
-                current_year_indices = [i for i in range(len(years)) if years[i] == year]
+                current_year_indices = [i for i in range(len(self.years)) if self.years[i] == year]
                 current_year_columns = self.mrr.iloc[:,current_year_indices]
                 self.cy_ttm_revenue["CY "+year] = current_year_columns.sum(axis=1)
                 # Calculate ARRs for the last month of each full year
