@@ -118,7 +118,9 @@ class RevAnalysis:
         # Only keep the last 3 years
         self.years = pd.to_datetime(self.mrr.columns).strftime('%Y')
         counter = collections.Counter(self.years)
-        last_index = 36+counter[max(counter.keys())]
+        num_trailing_months = counter[max(counter.keys())]
+        del counter[max(counter.keys())]
+        last_index = min(36, 12*len(counter.keys())) + num_trailing_months
         self.mrr = self.mrr.iloc[:, -last_index:]
         self.years = pd.to_datetime(self.mrr.columns).strftime('%Y')
 

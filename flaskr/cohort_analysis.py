@@ -1,4 +1,4 @@
-'''Python script to generate cohort analysis spreadsheets based on SEMrush inputs'''
+'''Python script to generate Cohort Analysis'''
 '''Authors - @Julia Liu
 '''
 
