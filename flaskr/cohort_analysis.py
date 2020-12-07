@@ -40,10 +40,10 @@ class CohortAnalysis:
 
     def clean_inputs(self):
         self.mrr.set_index("Customer", inplace=True)
-        self.mrr.apply(dollars_to_dec_list)
+        self.mrr.apply(filter_to_dec_list)
         self.mrr.drop(self.mrr.tail(2).index, inplace=True)
         self.cohorts.set_index("Customer", inplace=True)
-        self.cohorts.iloc[:, 1:-1] = self.cohorts.iloc[:, 1:-1].apply(dollars_to_dec_list)
+        self.cohorts.iloc[:, 1:-1] = self.cohorts.iloc[:, 1:-1].apply(filter_to_dec_list)
         self.cohorts = self.cohorts[self.cohorts['Cohort']!="N/A"]
 
     def clean_outputs(self):

@@ -3,6 +3,7 @@ from flask import request
 from flask_cors import CORS
 import sys
 import json
+import re
 
 from .rev_analysis import *
 from .cohort_analysis import *
@@ -37,11 +38,25 @@ def create_app(test_config=None):
 
     @app.route('/analysis', methods=['POST'])
     def analysis():
-        r = RevAnalysis(request.get_json()["ARR by Customer"])
+        sheets = request.get_json()
+        r = RevAnalysis(sheets["ARR by Customer"])
         r_res = r.run()
         c = CohortAnalysis(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
         c_res = c.run()
-        d = Dashboard(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
+
+        is_dict, bs_dict, cf_dict= {}, {}, {}
+        for sheet_name in sheets.keys():
+            match = re.search(r'(\d+)', sheet_name)
+            if match:
+                year = match.group()
+                if "IS" in sheet_name:
+                    is_dict[year] = sheets[sheet_name]
+                if "BS" in sheet_name:
+                    bs_dict[year] = sheets[sheet_name]
+                if "CF" in sheet_name:
+                    cf_dict[year] = sheets[sheet_name]
+
+        d = Dashboard(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"], is_dict, bs_dict, cf_dict)
         d_res = d.run()
         return json.dumps({**r_res, **c_res, **d_res})
 

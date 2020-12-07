@@ -44,7 +44,7 @@ class RevAnalysis:
 
     def clean_inputs(self):
         self.arr.set_index("Customer", inplace=True)
-        self.arr.apply(dollars_to_dec_list)
+        self.arr.apply(filter_to_dec_list)
 
     def clean_outputs(self):
         self.mrr = self.mrr.astype(object)
