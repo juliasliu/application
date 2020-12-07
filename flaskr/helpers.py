@@ -23,7 +23,7 @@ def filter_to_dec_list(x):
 
 def filter_to_dec(x):
     new_x = x
-    if isinstance(new_x, str):
+    if isinstance(new_x, str) and new_x != 'N/A':
         new_x = new_x.strip().replace(',', '')
         if new_x != '' and new_x.strip('%').strip('$') != '-':
             if '%' in new_x:

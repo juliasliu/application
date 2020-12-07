@@ -8,6 +8,7 @@ import re
 from .rev_analysis import *
 from .cohort_analysis import *
 from .dashboard import *
+from .cac import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -58,6 +59,8 @@ def create_app(test_config=None):
 
         d = Dashboard(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"], is_dict, bs_dict, cf_dict)
         d_res = d.run()
-        return json.dumps({**r_res, **c_res, **d_res})
+        ca = CAC(d.fin_perf_raw, d_res["Operating Metrics"], d_res["Other Metrics"])
+        ca_res = ca.run()
+        return json.dumps({**r_res, **c_res, **d_res, **ca_res})
 
     return app

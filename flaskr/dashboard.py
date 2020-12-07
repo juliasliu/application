@@ -93,8 +93,10 @@ class Dashboard:
 
         self.fin_perf = self.fin_perf.astype(object)
         self.fin_perf.apply(na_to_blank_list)
+        self.fin_perf_raw = self.fin_perf.copy()
         self.fin_perf = self.fin_perf.apply(numbers_with_commas_list)
         self.fin_perf.reset_index(inplace=True)
+        self.fin_perf_raw.reset_index(inplace=True)
 
         self.oper_stats = self.oper_stats.astype(object)
         self.oper_stats.apply(na_to_blank_list)
