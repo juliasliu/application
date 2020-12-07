@@ -73,33 +73,33 @@ class CohortAnalysis:
         indices = [i for i in range(self.cumulative.shape[1]) if "# Customers" != self.cumulative.columns[i]]
 
         self.rev_cohorts = self.rev_cohorts.astype(object)
-        self.rev_cohorts.apply(na_to_blank_list)
+        self.rev_cohorts.apply(nan_to_blank_list)
         self.rev_cohorts.apply(dec_to_dollars_list)
         self.rev_cohorts.reset_index(inplace=True)
         self.rev_cohorts.rename(columns=col_labels_dict, inplace=True)
 
         self.cust_cohorts = self.cust_cohorts.astype(object)
-        self.cust_cohorts.apply(na_to_blank_list)
+        self.cust_cohorts.apply(nan_to_blank_list)
         self.cust_cohorts.apply(numbers_with_commas_list)
         self.cust_cohorts.reset_index(inplace=True)
         self.cust_cohorts.rename(columns=col_labels_dict, inplace=True)
 
         self.rev_retention = self.rev_retention.astype(object)
-        self.rev_retention.apply(na_to_blank_list)
+        self.rev_retention.apply(nan_to_blank_list)
         self.rev_retention.iloc[:, indices] = self.rev_retention.iloc[:, indices].apply(dec_to_percents_list)
         self.rev_retention = self.rev_retention.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
         self.rev_retention.reset_index(inplace=True)
         self.rev_retention.rename(columns=col_labels_dict, inplace=True)
 
         self.logo_retention = self.logo_retention.astype(object)
-        self.logo_retention.apply(na_to_blank_list)
+        self.logo_retention.apply(nan_to_blank_list)
         self.logo_retention.iloc[:, indices] = self.logo_retention.iloc[:, indices].apply(dec_to_percents_list)
         self.logo_retention = self.logo_retention.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
         self.logo_retention.reset_index(inplace=True)
         self.logo_retention.rename(columns=col_labels_dict, inplace=True)
 
         self.cumulative = self.cumulative.astype(object)
-        self.cumulative.apply(na_to_blank_list)
+        self.cumulative.apply(nan_to_blank_list)
         self.cumulative.iloc[:, indices] = self.cumulative.iloc[:, indices].apply(dec_to_dollars_list)
         self.cumulative = self.cumulative.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
         self.cumulative.reset_index(inplace=True)

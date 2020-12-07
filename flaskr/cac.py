@@ -43,13 +43,13 @@ class CAC:
 
     def clean_outputs(self):
         self.cac_ttm = self.cac_ttm.astype(object)
-        self.cac_ttm.apply(na_to_blank_list)
+        self.cac_ttm.apply(nan_to_blank_list)
         self.cac_ttm = self.cac_ttm.apply(numbers_with_commas_list)
         self.cac_ttm = self.cac_ttm.drop(self.cac_ttm.columns[0], axis=1)
         self.cac_ttm.reset_index(inplace=True)
 
         self.cac_yoy = self.cac_yoy.astype(object)
-        self.cac_yoy.apply(na_to_blank_list)
+        self.cac_yoy.apply(nan_to_blank_list)
         cac_yoy_copy = self.cac_yoy.copy()
         self.cac_yoy = self.cac_yoy.apply(numbers_with_commas_list)
         self.cac_yoy.loc['YoY growth'] = cac_yoy_copy.loc['YoY growth'].apply(dec_to_percents)

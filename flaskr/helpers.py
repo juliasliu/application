@@ -67,12 +67,12 @@ def dec_to_percents(x):
         return x
     return "{0:.0%}".format(float(x))
 
-def na_to_blank_list(x):
+def nan_to_blank_list(x):
     for i in range(len(x)):
-        x[i] = na_to_blank(x[i])
+        x[i] = nan_to_blank(x[i])
     return x
 
-def na_to_blank(x):
+def nan_to_blank(x):
     if x != "N/A" and math.isnan(float(x)):
         return ''
     return x

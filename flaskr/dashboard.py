@@ -75,14 +75,14 @@ class Dashboard:
 
     def clean_outputs(self):
         self.base_build = self.base_build.astype(object)
-        self.base_build.apply(na_to_blank_list)
+        self.base_build.apply(nan_to_blank_list)
         base_build_copy = self.base_build.copy()
         self.base_build = self.base_build.apply(numbers_with_commas_list)
         self.base_build.loc['Churn %'] = base_build_copy.loc['Churn %'].apply(dec_to_percents)
         self.base_build.reset_index(inplace=True)
 
         self.rev_build = self.rev_build.astype(object)
-        self.rev_build.apply(na_to_blank_list)
+        self.rev_build.apply(nan_to_blank_list)
         rev_build_copy = self.rev_build.copy()
         self.rev_build = self.rev_build.apply(zero_to_blank_list)
         self.rev_build = self.rev_build.apply(numbers_with_commas_list)
@@ -92,19 +92,19 @@ class Dashboard:
         self.rev_build.reset_index(inplace=True)
 
         self.fin_perf = self.fin_perf.astype(object)
-        self.fin_perf.apply(na_to_blank_list)
+        self.fin_perf.apply(nan_to_blank_list)
         self.fin_perf_raw = self.fin_perf.copy()
         self.fin_perf = self.fin_perf.apply(numbers_with_commas_list)
         self.fin_perf.reset_index(inplace=True)
         self.fin_perf_raw.reset_index(inplace=True)
 
         self.oper_stats = self.oper_stats.astype(object)
-        self.oper_stats.apply(na_to_blank_list)
+        self.oper_stats.apply(nan_to_blank_list)
         self.oper_stats = self.oper_stats.apply(dec_to_percents_list)
         self.oper_stats.reset_index(inplace=True)
 
         self.oper_metrics = self.oper_metrics.astype(object)
-        self.oper_metrics.apply(na_to_blank_list)
+        self.oper_metrics.apply(nan_to_blank_list)
         oper_metrics_copy = self.oper_metrics.copy()
         self.oper_metrics = self.oper_metrics.apply(zero_to_blank_list)
         self.oper_metrics = self.oper_metrics.apply(numbers_with_commas_list)
@@ -117,19 +117,19 @@ class Dashboard:
         self.oper_metrics.reset_index(inplace=True)
 
         self.bal_sheet = self.bal_sheet.astype(object)
-        self.bal_sheet.apply(na_to_blank_list)
+        self.bal_sheet.apply(nan_to_blank_list)
         self.bal_sheet.apply(zero_to_blank_list)
         self.bal_sheet = self.bal_sheet.apply(numbers_with_commas_list)
         self.bal_sheet.reset_index(inplace=True)
 
         self.cash_flow_stat = self.cash_flow_stat.astype(object)
-        self.cash_flow_stat.apply(na_to_blank_list)
+        self.cash_flow_stat.apply(nan_to_blank_list)
         self.cash_flow_stat.apply(zero_to_blank_list)
         self.cash_flow_stat = self.cash_flow_stat.apply(numbers_with_commas_list)
         self.cash_flow_stat.reset_index(inplace=True)
 
         self.oth_metrics = self.oth_metrics.astype(object)
-        self.oth_metrics.apply(na_to_blank_list)
+        self.oth_metrics.apply(nan_to_blank_list)
         oth_metrics_copy = self.oth_metrics.copy()
         self.oth_metrics = self.oth_metrics.apply(numbers_with_commas_list)
         self.oth_metrics.loc['FCF margin'] = oth_metrics_copy.loc['FCF margin'].apply(dec_to_percents)
