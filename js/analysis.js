@@ -151,4 +151,13 @@ function sheetTabClicked(type, categoryName, sheetName) {
   $('.dropdown-menu#'+categoryNameFiltered+' li#' + sheetNameFiltered).addClass("active");
 }
 
+function toggleCardBodyDisplay(type) {
+  $('#'+type+'-card-body').toggleClass("hidden");
+  if ($('#'+type+'-card-body').hasClass("hidden")) {
+    $('#'+type+'-toggle-button').html("Show");
+  } else {
+    $('#'+type+'-toggle-button').html("Hide");
+  }
+}
+
 document.getElementById('file').addEventListener('change', readSingleFile);

@@ -48,49 +48,17 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Dashboard
                             </a>
-                            <!-- <div class="sb-sidenav-menu-heading">Interface</div>
                             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                                Layouts
+                                <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                                Companies
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="pages/layout-static.html">Static Navigation</a>
-                                    <a class="nav-link" href="pages/layout-sidenav-light.html">Light Sidenav</a>
+                                    <a class="nav-link" href="#">Icertis</a>
+                                    <a class="nav-link" href="#">Quantum Metric</a>
                                 </nav>
                             </div>
-                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
-                                <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
-                                Pages
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
-                                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">
-                                        Authentication
-                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                                    </a>
-                                    <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
-                                        <nav class="sb-sidenav-menu-nested nav">
-                                            <a class="nav-link" href="pages/login.html">Login</a>
-                                            <a class="nav-link" href="pages/register.html">Register</a>
-                                            <a class="nav-link" href="pages/password.html">Forgot Password</a>
-                                        </nav>
-                                    </div>
-                                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pagesCollapseError" aria-expanded="false" aria-controls="pagesCollapseError">
-                                        Error
-                                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                                    </a>
-                                    <div class="collapse" id="pagesCollapseError" aria-labelledby="headingOne" data-parent="#sidenavAccordionPages">
-                                        <nav class="sb-sidenav-menu-nested nav">
-                                            <a class="nav-link" href="pages/401.html">401 Page</a>
-                                            <a class="nav-link" href="pages/404.html">404 Page</a>
-                                            <a class="nav-link" href="pages/500.html">500 Page</a>
-                                        </nav>
-                                    </div>
-                                </nav>
-                            </div> -->
                             <div class="sb-sidenav-menu-heading">Addons</div>
                             <a class="nav-link" href="pages/charts.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
@@ -117,35 +85,42 @@
                                 <p>Instructions: Upload a new Excel (.xls) spreadsheet for a company. Make sure:</p>
                                 <ul>
                                   <li>Spreadsheet contains data for at least 12 months (1 full year)</li>
-                                  <li>Spreadsheet tabs are labeled: <mark>"ARR by Customer"</mark>, <mark>"IS (<code>year</code>)"</mark>, <mark>"BS (<code>year</code>)"</mark>, and <mark>"CF (<code>year</code>)"</mark>, <em>i.e. <code>year</code> is 2020</em></li>
+                                  <li>Spreadsheet tabs are labeled: <mark>"ARR by Customer"</mark>, <mark>"IS (<code>year</code>)"</mark>, <mark>"BS (<code>year</code>)"</mark>, and <mark>"CF (<code>year</code>)"</mark>, <em>i.e. <code>year</code> is 2020</em>.
+                                    The last year does not need to have all 12 months of data, but it should be in a separate tab.</li>
                                   <li>Each sheet has compact columns, <em>a.k.a. there should be no empty columns in between any label columns and month columns (rows can have empty rows in between)</em></li>
                                   <li>For the financial statement inputs, <em>i.e. IS, BS, CF,</em> the column used for identifying fields is named <mark>"Labels"</mark></li>
                                   <li>For all month column labels, they are in the format <code>dd-Mmm-yy</code>, <em>i.e. <code>dd</code> is 31, <code>Mmm</code> is Jan, <code>yy</code> is 20</em></li>
                                   <li>The dates used for each month column label are the same across all input sheets, <em>i.e. ARR by Customer has <code>29-Feb-16</code> so IS (2016) must have <code>29-Feb-16</code>, not <code>28-Feb-16</code> or any other date</em></li>
-                                  <li>All labels in the <mark>"Labels"</mark> column are exactly the same (case-sensitive), <em>i.e. no typos, extra spaces, same capitalization</em></li>
+                                  <li>All labels in the <mark>"Labels"</mark> column are exactly the same (case-sensitive), <em>i.e. no typos, no extra spaces, same capitalization</em></li>
                                 </ul>
                             </div>
                         </div>
                         <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">View the full analysis of individual companies below</li>
+                            <li class="breadcrumb-item active">View the full analysis of individual companies below or use the sidebar to navigate to their pages</li>
                         </ol>
                         <div class="row flex-nowrap justify-content-left" style="overflow-x: scroll;">
-                            <div class="col-xl-2 col-md-4">
+                            <div class="col-xl-2 col-md-3">
                               <input type="file" name="file" id="file" class="inputfile" />
-                              <label for="file" class="btn btn-primary">+ New company</label>
+                              <label for="file" class="btn btn-primary">+ Upload company</label>
                             </div>
-                            <div class="col-xl-2 col-md-4">
+                            <div class="col-xl-3 col-md-4">
                                 <div class="card mb-4">
-                                    <div class="card-body">Icertis</div>
+                                    <div class="card-body">
+                                      <h5>Icertis</h5>
+                                      <div>2014-2019</div>
+                                    </div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
                                         <a class="small stretched-link" href="#">View Details</a>
                                         <div class="small"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-2 col-md-4">
+                            <div class="col-xl-3 col-md-4">
                                 <div class="card mb-4">
-                                    <div class="card-body">Quantum Metric</div>
+                                    <div class="card-body">
+                                      <h5>Quantum Metric</h5>
+                                      <div>2014-2019</div>
+                                    </div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
                                         <a class="small stretched-link" href="#">View Details</a>
                                         <div class="small"><i class="fas fa-angle-right"></i></div>
@@ -161,8 +136,9 @@
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
                                 <span id="card-header-title">Input Data</span>
+                                <button type="button" class="btn float-right" id="input-toggle-button" onclick="toggleCardBodyDisplay('input')">Hide</button>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" id="input-card-body">
                                 <div class="table-responsive" id="input-table-container">
                                 </div>
                                 <div class="btn-group mt-4" role="group" aria-label="Input navbar" id="input-file-pagination">
@@ -175,8 +151,9 @@
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
                                 <span id="card-header-title">Output Data</span>
+                                <button type="button" class="btn float-right" id="output-toggle-button" onclick="toggleCardBodyDisplay('output')">Hide</button>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" id="output-card-body">
                                 <div class="table-responsive" id="output-table-container">
                                 </div>
                                 <div class="btn-group mt-4" role="group" aria-label="Output navbar" id="output-file-pagination">
@@ -188,9 +165,10 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-chart-area mr-1"></i>
-                                Area Chart Example
+                                <span id="card-header-title">Area Chart Example</span>
+                                <button type="button" class="btn float-right" id="charts-toggle-button" onclick="toggleCardBodyDisplay('charts')">Hide</button>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" id="charts-card-body">
                               <canvas id="myAreaChart" width="100%" height="30"></canvas>
                             </div>
                             <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
