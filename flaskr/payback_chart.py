@@ -11,13 +11,12 @@ from .helpers import *
 
 class PaybackChart:
 
-    def __init__(self, rev_cohorts, cumulative, oper_stats, cac, missing_months):
+    def __init__(self, rev_cohorts, cumulative, oper_stats, cac):
         print("INIT PAYBACK CHART")
         self.rev_cohorts = pd.DataFrame(rev_cohorts)
         self.cumulative = pd.DataFrame(cumulative)
         self.oper_stats = pd.DataFrame(oper_stats)
         self.cac = pd.DataFrame(cac)
-        self.missing_months = missing_months
 
     def run(self):
         self.clean_inputs()

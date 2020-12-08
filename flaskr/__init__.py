@@ -10,6 +10,7 @@ from .cohort_analysis import *
 from .dashboard import *
 from .cac import *
 from .payback_chart import *
+from .rev_charts import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -62,8 +63,10 @@ def create_app(test_config=None):
         d_res = d.run()
         ca = CAC(d.fin_perf_raw, d.oper_metrics, d.oth_metrics)
         ca_res = ca.run()
-        p = PaybackChart(c.rev_cohorts, c.cumulative, d.oper_stats_raw, ca.cac_ttm, c.missing_months)
+        p = PaybackChart(c.rev_cohorts, c.cumulative, d.oper_stats_raw, ca.cac_ttm)
         p_res = p.run()
-        return json.dumps({**r_res, **c_res, **d_res, **ca_res, **p_res})
+        rev = RevCharts(d.rev_build)
+        rev_res = rev.run()
+        return json.dumps({**r_res, **c_res, **d_res, **ca_res, **p_res, **rev_res})
 
     return app
