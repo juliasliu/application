@@ -112,62 +112,51 @@
                 <main>
                     <div class="container-fluid">
                         <h1 class="mt-4">Dashboard</h1>
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <p>Instructions: Upload a new Excel (.xls) spreadsheet for a company. Make sure:</p>
+                                <ul>
+                                  <li>Spreadsheet contains data for at least 12 months (1 full year)</li>
+                                  <li>Spreadsheet tabs are labeled: <mark>"ARR by Customer"</mark>, <mark>"IS (<code>year</code>)"</mark>, <mark>"BS (<code>year</code>)"</mark>, and <mark>"CF (<code>year</code>)"</mark>, <em>i.e. <code>year</code> is 2020</em></li>
+                                  <li>Each sheet has compact columns, <em>a.k.a. there should be no empty columns in between any label columns and month columns (rows can have empty rows in between)</em></li>
+                                  <li>For the financial statement inputs, <em>i.e. IS, BS, CF,</em> the column used for identifying fields is named <mark>"Labels"</mark></li>
+                                  <li>For all month column labels, they are in the format <code>dd-Mmm-yy</code>, <em>i.e. <code>dd</code> is 31, <code>Mmm</code> is Jan, <code>yy</code> is 20</em></li>
+                                  <li>The dates used for each month column label are the same across all input sheets, <em>i.e. ARR by Customer has <code>29-Feb-16</code> so IS (2016) must have <code>29-Feb-16</code>, not <code>28-Feb-16</code> or any other date</em></li>
+                                  <li>All labels in the <mark>"Labels"</mark> column are exactly the same (case-sensitive), <em>i.e. no typos, extra spaces, same capitalization</em></li>
+                                </ul>
+                            </div>
+                        </div>
                         <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">View the full analysis of different companies</li>
+                            <li class="breadcrumb-item active">View the full analysis of individual companies below</li>
                         </ol>
-                        <!-- <div class="row">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-primary text-white mb-4">
-                                    <div class="card-body">Primary Card</div>
+                        <div class="row flex-nowrap justify-content-left" style="overflow-x: scroll;">
+                            <div class="col-xl-2 col-md-4">
+                              <input type="file" name="file" id="file" class="inputfile" />
+                              <label for="file" class="btn btn-primary">+ New company</label>
+                            </div>
+                            <div class="col-xl-2 col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-body">Icertis</div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                        <a class="small stretched-link" href="#">View Details</a>
+                                        <div class="small"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-warning text-white mb-4">
-                                    <div class="card-body">Warning Card</div>
+                            <div class="col-xl-2 col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-body">Quantum Metric</div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                        <a class="small stretched-link" href="#">View Details</a>
+                                        <div class="small"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-success text-white mb-4">
-                                    <div class="card-body">Success Card</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-danger text-white mb-4">
-                                    <div class="card-body">Danger Card</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-                        <div class="row mb-2 mx-0">
-                          <select class="form-control mr-4" style="flex: 1;">
-                            <option>Unqork</option>
-                            <option>Icertis</option>
-                          </select>
-                          <div>
-                            <input type="file" name="file" id="file" class="inputfile" />
-                            <label for="file" class="btn btn-primary">Upload input data (.xls)</label>
-                          </div>
                         </div>
-                        <div class="row mb-4 mx-0">
-                          <button type="button" class="btn btn-success">
-                            Add new company
-                          </button>
-                        </div>
+
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item active">View the benchmarking analysis for all companies below</li>
+                        </ol>
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
@@ -176,13 +165,12 @@
                             <div class="card-body">
                                 <div class="table-responsive" id="input-table-container">
                                 </div>
-                                <div class="btn-group my-4" role="group" aria-label="Input navbar" id="input-file-pagination">
+                                <div class="btn-group mt-4" role="group" aria-label="Input navbar" id="input-file-pagination">
 
                                 </div>
                             </div>
+                            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
                         </div>
-
-
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
@@ -191,10 +179,21 @@
                             <div class="card-body">
                                 <div class="table-responsive" id="output-table-container">
                                 </div>
-                                <div class="btn-group my-4" role="group" aria-label="Output navbar" id="output-file-pagination">
+                                <div class="btn-group mt-4" role="group" aria-label="Output navbar" id="output-file-pagination">
 
                                 </div>
                             </div>
+                            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-area mr-1"></i>
+                                Area Chart Example
+                            </div>
+                            <div class="card-body">
+                              <canvas id="myAreaChart" width="100%" height="30"></canvas>
+                            </div>
+                            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
                         </div>
                     </div>
                 </main>
