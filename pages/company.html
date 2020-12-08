@@ -7,14 +7,14 @@
         <meta name="description" content="" />
         <meta name="author" content="" />
         <title>Greycroft Dashboard</title>
-        <link href="css/styles.css" rel="stylesheet" />
-        <link href="css/dashboard.css" rel="stylesheet" />
+        <link href="../css/styles.css" rel="stylesheet" />
+        <link href="../css/dashboard.css" rel="stylesheet" />
         <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js" crossorigin="anonymous"></script>
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand" href="index.html">Greycroft</a>
+            <a class="navbar-brand" href="../index.html">Greycroft</a>
             <button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" href="#"><i class="fas fa-bars"></i></button>
             <!-- Navbar Search-->
             <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
@@ -44,7 +44,7 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
-                            <a class="nav-link" href="index.html">
+                            <a class="nav-link" href="../index.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Dashboard
                             </a>
@@ -55,16 +55,16 @@
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="pages/company.html">Icertis</a>
+                                    <a class="nav-link" href="#">Icertis</a>
                                     <a class="nav-link" href="#">Quantum Metric</a>
                                 </nav>
                             </div>
                             <div class="sb-sidenav-menu-heading">Addons</div>
-                            <a class="nav-link" href="pages/charts.html">
+                            <a class="nav-link" href="../pages/charts.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Charts
                             </a>
-                            <a class="nav-link" href="pages/tables.html">
+                            <a class="nav-link" href="../pages/tables.html">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Tables
                             </a>
@@ -79,7 +79,7 @@
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid">
-                        <h1 class="mt-4">Dashboard</h1>
+                        <h1 class="mt-4">Icertis</h1>
                         <div class="card mb-4">
                             <div class="card-body">
                                 <p>Instructions: Upload a new Excel (.xls) spreadsheet for a company. Make sure:</p>
@@ -95,44 +95,17 @@
                                 </ul>
                             </div>
                         </div>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">View the full analysis of individual companies below or use the sidebar to navigate to their pages</li>
-                        </ol>
-                        <div class="row flex-nowrap justify-content-left" style="overflow-x: scroll;">
-                            <div class="col-xl-2 col-md-3">
-                              <input type="file" name="file" id="file" class="inputfile" />
-                              <label for="file" class="btn btn-primary">+ Upload company</label>
-                            </div>
-                            <div class="col-xl-3 col-md-4">
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                      <h5>Icertis</h5>
-                                      <div>2014-2019</div>
-                                    </div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small stretched-link" href="#">View Details</a>
-                                        <div class="small"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-4">
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                      <h5>Quantum Metric</h5>
-                                      <div>2014-2019</div>
-                                    </div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small stretched-link" href="#">View Details</a>
-                                        <div class="small"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">View the benchmarking analysis for all companies below</li>
+                            <li class="breadcrumb-item active">View the full analysis of the company below</li>
                         </ol>
-                        <!-- <div class="card mb-4">
+                        <div class="row mb-4">
+                          <div class="col-xl-2 col-md-3">
+                            <input type="file" name="file" id="file" class="inputfile" />
+                            <label for="file" class="btn btn-primary">+ Update company</label>
+                          </div>
+                        </div>
+                        <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
                                 <span id="card-header-title">Input Data</span>
@@ -146,7 +119,7 @@
                                 </div>
                             </div>
                             <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
-                        </div> -->
+                        </div>
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table mr-1"></i>
@@ -191,8 +164,8 @@
         </div>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-        <script src="js/scripts.js"></script>
-        <script src="js/analysis.js"></script>
+        <script src="../js/scripts.js"></script>
+        <script src="../js/analysis.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
         <!-- <script src="assets/demo/chart-area-demo.js"></script>
         <script src="assets/demo/chart-bar-demo.js"></script> -->

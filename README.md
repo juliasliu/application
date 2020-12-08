@@ -3,6 +3,7 @@
 ## File directory structure
  - `css/`: styles for the web app frontend
  - `flaskr/`: server code for receiving requests from JS frontend and running Python/Pandas scripts for data analysis
+ - `inputs/`: sample company input data Excel spreadsheets
  - `js/`: frontend scripts for uploading Excel spreadsheets and displaying data and graphs
  - `pages/`: web app frontend HTML pages
  - `venv/`: a Python virtual environment where Flask and other dependencies are installed

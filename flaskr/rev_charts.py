@@ -1,4 +1,4 @@
-'''Python script to generate Payback Chart (Monthly)'''
+'''Python script to generate Rev Charts'''
 '''Authors - @Julia Liu
 '''
 
