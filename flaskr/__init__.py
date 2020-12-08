@@ -11,6 +11,7 @@ from .dashboard import *
 from .cac import *
 from .payback_chart import *
 from .rev_charts import *
+from .benchmark import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -34,14 +35,7 @@ def create_app(test_config=None):
     # except OSError:
     #     pass
 
-    # a simple page that says hello
-    @app.route('/')
-    def hello():
-        return "Hello World!"
-
-    @app.route('/analysis', methods=['POST'])
-    def analysis():
-        sheets = request.get_json()
+    def analysis_helper(sheets):
         r = RevAnalysis(sheets["ARR by Customer"])
         r_res = r.run()
         c = CohortAnalysis(r.mrr, r.rev_cohorts)
@@ -58,6 +52,9 @@ def create_app(test_config=None):
                     bs_dict[year] = sheets[sheet_name]
                 if "CF" in sheet_name:
                     cf_dict[year] = sheets[sheet_name]
+        years = sorted(is_dict.keys())
+        start_year = years[0]
+        end_year = years[-1]
 
         d = Dashboard(r.mrr, r.rev_cohorts, is_dict, bs_dict, cf_dict)
         d_res = d.run()
@@ -74,7 +71,36 @@ def create_app(test_config=None):
             "Dashboard": d_res,
             "CAC": ca_res,
             "Payback Chart": p_res,
-            "Rev Charts": rev_res
+            "Rev Charts": rev_res,
+            "start_year": start_year,
+            "end_year": end_year,
+        }
+        return json.dumps(res)
+
+    # a simple page that says hello
+    @app.route('/')
+    def hello():
+        return "Hello World!"
+
+    @app.route('/analysis', methods=['POST'])
+    def analysis():
+        sheets = request.get_json()
+        return analysis_helper(sheets)
+
+    @app.route('/benchmark', methods=['POST'])
+    def benchmark():
+        companies = request.get_json()
+        
+        # Run analysis on individual companies
+        company_dict = {}
+        for company in companies.keys():
+            company_dict[company] = json.loads(analysis_helper(companies[company]))
+        print(company_dict)
+
+        b = Benchmark(company_dict)
+        b_res = b.run()
+        res = {
+            "Benchmark": b_res,
         }
         return json.dumps(res)
 

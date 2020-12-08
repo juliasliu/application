@@ -1,36 +1,85 @@
 function readSingleFile(evt) {
+  var r = new FileReader();
   var f = evt.target.files[0];
   if (f) {
-    var r = new FileReader();
-    var output = [];
     r.onload = function(e) {
         var contents = e.target.result;
 
-        ProcessExcel(contents);
+        // Parse sheets in Excel spreadsheet file
+        var processed = ProcessExcel(contents);
+        var sheets = processed[0];
+        var full_sheet_data = processed[1];
 
-        // var columns = [];
-        // var data = [];
-        //
-        // var lines = contents.split("\n");
-        // // add columns
-        // lines[0].split(",").forEach(column => columns.push({"data": column}));
-        // // add data
-        // for (var i=1; i<lines.length; i++) {
-        //   var newData = {};
-        //   var dataPoints = lines[i].split(",");
-        //   // for (var j=0; j<dataPoints.length; j++) {
-        //   //   newData[columns[j]["data"]] = dataPoints[j];
-        //   // }
-        //   data.push(dataPoints);
-        // }
-        //
-        // var table = $('#dataTable').DataTable({"columns": columns});
-        // table.rows.add(data[0]).draw();
+        try {
+          // Display data
+          displayData("input", full_sheet_data);
+
+          // Run python script analysis
+          $.ajax({
+              type: "POST",
+              url: "http://127.0.0.1:5000/analysis",
+              contentType: 'application/json',
+              data: JSON.stringify(sheets),
+              success: successFunc,
+              error: errorFunc
+          });
+        } catch(err) {
+          errorFunc(err);
+        }
+
+        function successFunc(response) {
+            // do something with the response
+            displayData("output", JSON.parse(response));
+        }
+
+        function errorFunc(error) {
+          alert("Failed to complete analysis. Make sure to check that your input file is in the correct format.");
+        }
     }
     r.readAsBinaryString(f);
   } else {
     alert("Failed to load file");
   }
+}
+
+function readMultipleFiles(evt) {
+  var r = new FileReader();
+  var files = evt.target.files;
+  var company_dict = {};
+  function readFile(index) {
+    if (index >= files.length) {
+      // Run python script benchmarking analysis
+      $.ajax({
+          type: "POST",
+          url: "http://127.0.0.1:5000/benchmark",
+          contentType: 'application/json',
+          data: JSON.stringify(company_dict),
+          success: successFunc,
+          error: errorFunc
+      });
+
+      function successFunc(response) {
+          // do something with the response
+          var res_json = JSON.parse(response);
+          console.log(res_json);
+          displayCompanyCards(res_json);
+          displayData("output", res_json);
+      }
+
+      function errorFunc(error) {
+        alert("Failed to complete analysis. Make sure to check that your input files are in the correct format.");
+      }
+    }
+    var f = files[index];
+    r.onload = function(e) {
+        var contents = e.target.result;
+        // Parse sheets in Excel spreadsheet file
+        company_dict[f.name.split(".")[0]] = ProcessExcel(contents)[0];
+        readFile(index + 1);
+    }
+    r.readAsBinaryString(f);
+  }
+  readFile(0);
 }
 
 function ProcessExcel(data) {
@@ -63,79 +112,83 @@ function ProcessExcel(data) {
     "CF": cf_dict
   }
 
-  // Display data
-  displayData("input", full_sheet_data);
-
-  console.log(JSON.stringify(full_sheet_data));
-
-  // Run python script analysis
-  $.ajax({
-      type: "POST",
-      url: "http://127.0.0.1:5000/analysis",
-      contentType: 'application/json',
-      data: JSON.stringify(sheets),
-      success: callbackFunc
-  });
-
-  function callbackFunc(response) {
-      // do something with the response
-      console.log(JSON.parse(response));
-      displayData("output", JSON.parse(response));
-  }
+  return [sheets, full_sheet_data];
 };
 
 function displayData(type, categories) {
 
   for (category in categories) {
 
-    var categoryNameFiltered = category.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+    if (category != "start_year" && category != "end_year") {
 
-    var dropdown_btn =
-    '<div class="btn-group" role="group">' +
-      '<div class="dropdown page-item">' +
-        '<button id="' + categoryNameFiltered + '" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-          category + '<span class="caret"></span>' +
-        '</button>' +
-        '<div class="dropdown-menu" id="' + categoryNameFiltered + '" aria-labelledby="' + categoryNameFiltered + '">'
+      var categoryNameFiltered = category.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
 
-    var sheets = categories[category];
-    for (sheet in sheets) {
-      // first line is thead
-      // be able to hide columns
-      var output = "<thead>";
-      output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
-      output += "</thead>";
+      var dropdown_btn =
+      '<div class="btn-group" role="group">' +
+        '<div class="dropdown page-item">' +
+          '<button id="' + categoryNameFiltered + '" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+            category + '<span class="caret"></span>' +
+          '</button>' +
+          '<div class="dropdown-menu" id="' + categoryNameFiltered + '" aria-labelledby="' + categoryNameFiltered + '">'
 
-      // subsequent lines are tbody
-      output += "<tbody>";
-      for (var i=0; i<sheets[sheet].length; i++){
-        output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+      var sheets = categories[category];
+      for (sheet in sheets) {
+        // first line is thead
+        // be able to hide columns
+        var output = "<thead>";
+        output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
+        output += "</thead>";
+
+        // subsequent lines are tbody
+        output += "<tbody>";
+        for (var i=0; i<sheets[sheet].length; i++){
+          output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+        }
+        output += "</tbody>";
+
+        var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+
+        // wrap entire table
+        output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
+
+        // add table and pagination link dropdown
+        $("#"+type+"-table-container").append(output);
+        dropdown_btn +=
+          '<li id="' + sheetNameFiltered + '">'+
+            '<a class="dropdown-item" onclick="sheetTabClicked(\'' + type + '\', \'' + category + '\', \'' + sheet + '\')">' + sheet + '</a>'+
+          '</li>'
       }
-      output += "</tbody>";
-
-      var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
-
-      // wrap entire table
-      output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
-
-      // add table and pagination link dropdown
-      $("#"+type+"-table-container").append(output);
       dropdown_btn +=
-        '<li id="' + sheetNameFiltered + '">'+
-          '<a class="dropdown-item" onclick="sheetTabClicked(\'' + type + '\', \'' + category + '\', \'' + sheet + '\')">' + sheet + '</a>'+
-        '</li>'
-    }
-    dropdown_btn +=
+          '</div>' +
         '</div>' +
-      '</div>' +
-    '</div>'
-    $("#"+type+"-file-pagination").append(dropdown_btn);
-    $('.dropdown-menu#'+categoryNameFiltered+' li').first().addClass("active");
+      '</div>'
+      $("#"+type+"-file-pagination").append(dropdown_btn);
+      $('.dropdown-menu#'+categoryNameFiltered+' li').first().addClass("active");
+    }
   }
 
   // show first sheet by default
   $("#"+type+"-table-container .table").first().removeClass('hidden');
   $("#"+type+"-file-pagination .btn-group .dropdown .btn").first().addClass('active');
+}
+
+function displayCompanyCards(companies) {
+  for (company in companies) {
+    var companyCard =
+    '<div class="col-xl-3 col-md-4">' +
+        '<div class="card mb-4">' +
+            '<div class="card-body">' +
+              '<h5>' + company + '</h5>' +
+              '<div>' + company["start_year"] + '-' + company["end_year"] + '</div>' +
+            '</div>' +
+            '<div class="card-footer d-flex align-items-center justify-content-between">' +
+                '<a class="small stretched-link" href="#">View Details</a>' +
+                '<div class="small"><i class="fas fa-angle-right"></i></div>' +
+            '</div>' +
+        '</div>' +
+    '</div>'
+    $('#company-card-list').append(companyCard);
+  }
 }
 
 function sheetTabClicked(type, categoryName, sheetName) {
@@ -160,4 +213,5 @@ function toggleCardBodyDisplay(type) {
   }
 }
 
-document.getElementById('file').addEventListener('change', readSingleFile);
+if (document.getElementById('file')) document.getElementById('file').addEventListener('change', readSingleFile);
+if (document.getElementById('files')) document.getElementById('files').addEventListener('change', readMultipleFiles);

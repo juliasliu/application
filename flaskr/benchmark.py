@@ -35,14 +35,14 @@ class Benchmark:
         print("INIT BENCHMARK")
         self.fin_perf, self.oper_stats, self.cash_flow_stat, self.oth_metrics, self.rev_retention, self.logo_retention, self.cumulative, self.cac = {}, {}, {}, {}, {}, {}, {}, {}
         for company in companies.keys():
-            self.fin_perf[company] = pd.DataFrame(companies[company]["Financial Performance"])
-            self.oper_stats[company] = pd.DataFrame(companies[company]["Operating Statistics"])
-            self.cash_flow_stat[company] = pd.DataFrame(companies[company]["Cash Flow Statement"])
-            self.oth_metrics[company] = pd.DataFrame(companies[company]["Other Metrics"])
-            self.rev_retention[company] = pd.DataFrame(companies[company]["Revenue Retention (Monthly)"])
-            self.logo_retention[company] = pd.DataFrame(companies[company]["Logo Retention (Monthly)"])
-            self.cumulative[company] = pd.DataFrame(companies[company]["Cumulative Revenue Per Customer (Monthly)"])
-            self.cac[company] = pd.DataFrame(companies[company]["CAC & CAC TTM"])
+            self.fin_perf[company] = pd.DataFrame(companies[company]["Dashboard"]["Financial Performance"])
+            self.oper_stats[company] = pd.DataFrame(companies[company]["Dashboard"]["Operating Statistics"])
+            self.cash_flow_stat[company] = pd.DataFrame(companies[company]["Dashboard"]["Cash Flow Statement"])
+            self.oth_metrics[company] = pd.DataFrame(companies[company]["Dashboard"]["Other Metrics"])
+            self.rev_retention[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Revenue Retention (Monthly)"])
+            self.logo_retention[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Logo Retention (Monthly)"])
+            self.cumulative[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Cumulative Revenue Per Customer (Monthly)"])
+            self.cac[company] = pd.DataFrame(companies[company]["CAC"]["CAC & CAC TTM"])
 
     def run(self):
         self.clean_inputs()
