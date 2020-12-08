@@ -39,9 +39,11 @@ class CohortAnalysis:
         return json
 
     def clean_inputs(self):
+        self.mrr = self.mrr.copy()
         self.mrr.set_index("Customer", inplace=True)
         self.mrr.apply(filter_to_dec_list)
         self.mrr.drop(self.mrr.tail(2).index, inplace=True)
+        self.cohorts = self.cohorts.copy()
         self.cohorts.set_index("Customer", inplace=True)
         self.cohorts.iloc[:, 1:-1] = self.cohorts.iloc[:, 1:-1].apply(filter_to_dec_list)
         self.cohorts = self.cohorts[self.cohorts['Cohort']!="N/A"]
@@ -75,35 +77,35 @@ class CohortAnalysis:
         self.rev_cohorts = self.rev_cohorts.astype(object)
         self.rev_cohorts.apply(nan_to_blank_list)
         self.rev_cohorts.apply(dec_to_dollars_list)
-        self.rev_cohorts.reset_index(inplace=True)
         self.rev_cohorts.rename(columns=col_labels_dict, inplace=True)
+        self.rev_cohorts.reset_index(inplace=True)
 
         self.cust_cohorts = self.cust_cohorts.astype(object)
         self.cust_cohorts.apply(nan_to_blank_list)
         self.cust_cohorts.apply(numbers_with_commas_list)
-        self.cust_cohorts.reset_index(inplace=True)
         self.cust_cohorts.rename(columns=col_labels_dict, inplace=True)
+        self.cust_cohorts.reset_index(inplace=True)
 
         self.rev_retention = self.rev_retention.astype(object)
         self.rev_retention.apply(nan_to_blank_list)
         self.rev_retention.iloc[:, indices] = self.rev_retention.iloc[:, indices].apply(dec_to_percents_list)
         self.rev_retention = self.rev_retention.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
-        self.rev_retention.reset_index(inplace=True)
         self.rev_retention.rename(columns=col_labels_dict, inplace=True)
+        self.rev_retention.reset_index(inplace=True)
 
         self.logo_retention = self.logo_retention.astype(object)
         self.logo_retention.apply(nan_to_blank_list)
         self.logo_retention.iloc[:, indices] = self.logo_retention.iloc[:, indices].apply(dec_to_percents_list)
         self.logo_retention = self.logo_retention.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
-        self.logo_retention.reset_index(inplace=True)
         self.logo_retention.rename(columns=col_labels_dict, inplace=True)
+        self.logo_retention.reset_index(inplace=True)
 
         self.cumulative = self.cumulative.astype(object)
         self.cumulative.apply(nan_to_blank_list)
         self.cumulative.iloc[:, indices] = self.cumulative.iloc[:, indices].apply(dec_to_dollars_list)
         self.cumulative = self.cumulative.reindex(['# Customers'] + list(self.cumulative.columns[:-1]), axis=1)
-        self.cumulative.reset_index(inplace=True)
         self.cumulative.rename(columns=col_labels_dict, inplace=True)
+        self.cumulative.reset_index(inplace=True)
 
         print("REVENUE COHORTS")
         print(self.rev_cohorts)
@@ -132,6 +134,7 @@ class CohortAnalysis:
         self.rev_cohorts.sort_values('Cohort')
         self.rev_cohorts = self.rev_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.rev_cohorts.set_axis(self.rev_cohorts.columns[self.rev_cohorts.columns], axis=1, inplace=False)
+        self.rev_cohorts[self.rev_cohorts.shape[1]] = pd.Series([0]*self.rev_cohorts.shape[0])
 
     def customer_cohorts(self):
         self.cust_cohorts = self.mrr_cohorts.groupby(by=['Cohort']).agg(lambda x: x.ne(0).sum())
@@ -139,16 +142,19 @@ class CohortAnalysis:
         self.cust_cohorts.sort_values('Cohort')
         self.cust_cohorts = self.cust_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.cust_cohorts.set_axis(self.cust_cohorts.columns[self.cust_cohorts.columns], axis=1, inplace=False)
+        self.cust_cohorts[self.cust_cohorts.shape[1]] = pd.Series([0]*self.cust_cohorts.shape[0])
 
     def revenue_retention(self):
         self.rev_retention = pd.DataFrame(index=np.arange(self.rev_cohorts.shape[0]))
         self.rev_retention.set_index(self.rev_cohorts.index, inplace=True)
         self.rev_retention = self.rev_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
+        self.rev_retention[self.rev_retention.shape[1]] = pd.Series([0]*self.rev_retention.shape[0])
 
     def logo_retention(self):
         self.logo_retention = pd.DataFrame(index=np.arange(self.cust_cohorts.shape[0]))
         self.logo_retention.set_index(self.cust_cohorts.index, inplace=True)
         self.logo_retention = self.cust_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
+        self.logo_retention[self.logo_retention.shape[1]] = pd.Series([0]*self.logo_retention.shape[0])
 
     def cumulative(self):
         self.cumulative = self.rev_cohorts.copy()

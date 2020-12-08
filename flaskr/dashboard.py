@@ -52,6 +52,7 @@ class Dashboard:
         return json
 
     def clean_inputs(self):
+        self.mrr = self.mrr.copy()
         self.mrr.set_index("Customer", inplace=True)
         old_columns = self.mrr.columns
         new_columns = pd.to_datetime(self.mrr.columns).strftime('%m/%Y')
@@ -59,6 +60,7 @@ class Dashboard:
         self.mrr.columns = new_columns
         self.mrr.apply(filter_to_dec_list)
         self.mrr.drop(self.mrr.tail(1).index, inplace=True)
+        self.cohorts = self.cohorts.copy()
         self.cohorts.set_index("Customer", inplace=True)
         self.cohorts.iloc[:, 1:-1] = self.cohorts.iloc[:, 1:-1].apply(filter_to_dec_list)
         self.cohorts = self.cohorts[self.cohorts['Cohort']!="N/A"]
@@ -100,8 +102,10 @@ class Dashboard:
 
         self.oper_stats = self.oper_stats.astype(object)
         self.oper_stats.apply(nan_to_blank_list)
+        self.oper_stats_raw = self.oper_stats.copy()
         self.oper_stats = self.oper_stats.apply(dec_to_percents_list)
         self.oper_stats.reset_index(inplace=True)
+        self.oper_stats_raw.reset_index(inplace=True)
 
         self.oper_metrics = self.oper_metrics.astype(object)
         self.oper_metrics.apply(nan_to_blank_list)

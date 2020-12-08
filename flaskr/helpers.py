@@ -23,17 +23,21 @@ def filter_to_dec_list(x):
 
 def filter_to_dec(x):
     new_x = x
+    is_percent = False
     if isinstance(new_x, str) and new_x != 'N/A':
         new_x = new_x.strip().replace(',', '')
         if new_x != '' and new_x.strip('%').strip('$') != '-':
             if '%' in new_x:
                 new_x = new_x.strip('%')
+                is_percent = True
             if '$' in new_x:
                 new_x = new_x.strip('$')
             if '(' in new_x and ')' in new_x:
                 new_x = -float(new_x.strip('(').strip(')'))
             else:
                 new_x = float(new_x)
+            if is_percent:
+                new_x /= 100
         else:
             new_x = 0
     return new_x
@@ -73,7 +77,7 @@ def nan_to_blank_list(x):
     return x
 
 def nan_to_blank(x):
-    if x != "N/A" and math.isnan(float(x)):
+    if x != "" and x != "N/A" and math.isnan(float(x)):
         return ''
     return x
 
@@ -110,3 +114,15 @@ def dec_to_tenths(x):
     if x == '':
         return ''
     return "{0:.1f}".format(x)
+
+def dec_to_hundredths_list(x):
+    if not isinstance(x, list):
+        x = list(x)
+    for i in range(len(x)):
+        x[i] = dec_to_hundredths(x[i])
+    return x
+
+def dec_to_hundredths(x):
+    if x == '':
+        return ''
+    return "{0:.2f}".format(x)

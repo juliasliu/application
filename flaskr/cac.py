@@ -34,8 +34,10 @@ class CAC:
         return json
 
     def clean_inputs(self):
+        self.fin_perf = self.fin_perf.copy()
         self.fin_perf.set_index("Financial Performance", inplace=True)
         self.fin_perf.apply(filter_to_dec_list)
+        self.oper_metrics = self.oper_metrics.copy()
         self.oper_metrics.set_index("Operating Metrics", inplace=True)
         self.oper_metrics.apply(filter_to_dec_list)
         self.oth_metrics.set_index("Other Metrics", inplace=True)

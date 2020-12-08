@@ -9,6 +9,7 @@ from .rev_analysis import *
 from .cohort_analysis import *
 from .dashboard import *
 from .cac import *
+from .payback_chart import *
 
 def create_app(test_config=None):
     # create and configure the app
@@ -42,7 +43,7 @@ def create_app(test_config=None):
         sheets = request.get_json()
         r = RevAnalysis(sheets["ARR by Customer"])
         r_res = r.run()
-        c = CohortAnalysis(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"])
+        c = CohortAnalysis(r.mrr, r.rev_cohorts)
         c_res = c.run()
 
         is_dict, bs_dict, cf_dict= {}, {}, {}
@@ -57,10 +58,12 @@ def create_app(test_config=None):
                 if "CF" in sheet_name:
                     cf_dict[year] = sheets[sheet_name]
 
-        d = Dashboard(r_res["MRR by Customer"], r_res["Revenue Cohorts (Monthly)"], is_dict, bs_dict, cf_dict)
+        d = Dashboard(r.mrr, r.rev_cohorts, is_dict, bs_dict, cf_dict)
         d_res = d.run()
-        ca = CAC(d.fin_perf_raw, d_res["Operating Metrics"], d_res["Other Metrics"])
+        ca = CAC(d.fin_perf_raw, d.oper_metrics, d.oth_metrics)
         ca_res = ca.run()
-        return json.dumps({**r_res, **c_res, **d_res, **ca_res})
+        p = PaybackChart(c.rev_cohorts, c.cumulative, d.oper_stats_raw, ca.cac_ttm, c.missing_months)
+        p_res = p.run()
+        return json.dumps({**r_res, **c_res, **d_res, **ca_res, **p_res})
 
     return app
