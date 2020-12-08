@@ -25,11 +25,24 @@
   overflow-x: scroll;
 }
 
-.page-link {
-	cursor: pointer;
-	height: 100%;
-}
-
 .hidden {
 	display: none;
+}
+
+.dropdown-menu li.active {
+	background: #e5e5e5;
+}
+
+.dropdown-item {
+	cursor: pointer;
+}
+
+.btn-group .btn-group:not(:last-child) .btn {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.btn-group .btn-group:not(:first-child) .btn, .btn-group .btn:not(:first-child) {
+	border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }

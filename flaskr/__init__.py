@@ -67,6 +67,15 @@ def create_app(test_config=None):
         p_res = p.run()
         rev = RevCharts(d.rev_build)
         rev_res = rev.run()
-        return json.dumps({**r_res, **c_res, **d_res, **ca_res, **p_res, **rev_res})
+
+        res = {
+            "Rev Analysis": r_res,
+            "Cohort Analysis": c_res,
+            "Dashboard": d_res,
+            "CAC": ca_res,
+            "Payback Chart": p_res,
+            "Rev Charts": rev_res
+        }
+        return json.dumps(res)
 
     return app

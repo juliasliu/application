@@ -42,12 +42,31 @@ function ProcessExcel(data) {
   // Name and rows from each sheet
   var sheets = {};
   workbook.SheetNames.forEach(sheetName => sheets[sheetName] = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]));
-  console.log(sheets);
+  var is_dict = {}
+  var bs_dict = {}
+  var cf_dict = {}
+  for (sheet_name in sheets) {
+    var re = sheet_name.match(/\.*(\d+)/g)
+    if (re) {
+      if (sheet_name.includes("IS"))
+          is_dict[sheet_name] = sheets[sheet_name]
+      if (sheet_name.includes("BS"))
+          bs_dict[sheet_name] = sheets[sheet_name]
+      if (sheet_name.includes("CF"))
+          cf_dict[sheet_name] = sheets[sheet_name]
+    }
+  }
+  var full_sheet_data = {
+    "ARR by Customer": {"ARR by Customer": sheets["ARR by Customer"]},
+    "IS": is_dict,
+    "BS": bs_dict,
+    "CF": cf_dict
+  }
 
   // Display data
-  displayData("input", sheets);
+  displayData("input", full_sheet_data);
 
-  console.log(JSON.stringify(sheets));
+  console.log(JSON.stringify(full_sheet_data));
 
   // Run python script analysis
   $.ajax({
@@ -65,60 +84,71 @@ function ProcessExcel(data) {
   }
 };
 
-function displayData(type, sheets) {
+function displayData(type, categories) {
 
-  for (sheet in sheets) {
-    // first line is thead
-    // be able to hide columns
-    var output = "<thead>";
-    output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
-    output += "</thead>";
+  for (category in categories) {
 
-    // subsequent lines are tbody
-    output += "<tbody>";
-    for (var i=0; i<sheets[sheet].length; i++){
-      output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+    var categoryNameFiltered = category.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+
+    var dropdown_btn =
+    '<div class="btn-group" role="group">' +
+      '<div class="dropdown page-item">' +
+        '<button id="' + categoryNameFiltered + '" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+          category + '<span class="caret"></span>' +
+        '</button>' +
+        '<div class="dropdown-menu" id="' + categoryNameFiltered + '" aria-labelledby="' + categoryNameFiltered + '">'
+
+    var sheets = categories[category];
+    for (sheet in sheets) {
+      // first line is thead
+      // be able to hide columns
+      var output = "<thead>";
+      output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
+      output += "</thead>";
+
+      // subsequent lines are tbody
+      output += "<tbody>";
+      for (var i=0; i<sheets[sheet].length; i++){
+        output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+      }
+      output += "</tbody>";
+
+      var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+
+      // wrap entire table
+      output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
+
+      // add table and pagination link dropdown
+      $("#"+type+"-table-container").append(output);
+      dropdown_btn +=
+        '<li id="' + sheetNameFiltered + '">'+
+          '<a class="dropdown-item" onclick="sheetTabClicked(\'' + type + '\', \'' + category + '\', \'' + sheet + '\')">' + sheet + '</a>'+
+        '</li>'
     }
-    output += "</tbody>";
-
-    var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
-
-    // wrap entire table
-    output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
-
-    // add table and pagination link dropdown
-    if (type == 'input') {
-      $("#input-table-container").append(output);
-      $("#input-file-pagination ul").append('<li class="page-item" id="' + sheetNameFiltered + '"><a class="page-link" onclick="sheetTabClicked(\'input\', \'' + sheet + '\')">' + sheet + '</a></li>');
-    } else if (type == 'output') {
-      $("#output-table-container").append(output);
-      $("#output-file-pagination ul").append('<li class="page-item" id="' + sheetNameFiltered + '"><a class="page-link" onclick="sheetTabClicked(\'output\', \'' + sheet + '\')">' + sheet + '</a></li>');
-    }
+    dropdown_btn +=
+        '</div>' +
+      '</div>' +
+    '</div>'
+    $("#"+type+"-file-pagination").append(dropdown_btn);
+    $('.dropdown-menu#'+categoryNameFiltered+' li').first().addClass("active");
   }
 
   // show first sheet by default
-  if (type == 'input') {
-    $('#input-table-container .table').first().removeClass('hidden');
-    $('#input-file-pagination ul .page-item').first().addClass('active');
-  } else if (type == 'output') {
-    $('#output-table-container .table').first().removeClass('hidden');
-    $('#output-file-pagination ul .page-item').first().addClass('active');
-  }
+  $("#"+type+"-table-container .table").first().removeClass('hidden');
+  $("#"+type+"-file-pagination .btn-group .dropdown .btn").first().addClass('active');
 }
 
-function sheetTabClicked(type, sheetName) {
+function sheetTabClicked(type, categoryName, sheetName) {
+  var categoryNameFiltered = categoryName.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
   var sheetNameFiltered = sheetName.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
 
-  if (type == 'input') {
-    $('#input-table-container .table').addClass('hidden');
-    $('#input-file-pagination ul .page-item').removeClass('active');
-  } else if (type == 'output') {
-    $('#output-table-container .table').addClass('hidden');
-    $('#output-file-pagination ul .page-item').removeClass('active');
-  }
+  $("#"+type+"-table-container .table").addClass('hidden');
+  $("#"+type+"-file-pagination .btn-group .dropdown .btn").removeClass('active');
+  $('.dropdown-menu#'+categoryNameFiltered+' li').removeClass('active');
 
   $('.table#' + sheetNameFiltered).removeClass("hidden");
-  $('.page-item#' + sheetNameFiltered).addClass("active");
+  $('.btn.dropdown-toggle#' + categoryNameFiltered).addClass("active");
+  $('.dropdown-menu#'+categoryNameFiltered+' li#' + sheetNameFiltered).addClass("active");
 }
 
 document.getElementById('file').addEventListener('change', readSingleFile);
