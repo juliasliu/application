@@ -185,7 +185,7 @@ class Dashboard:
             a.append(len(self.base_interm[(self.base_interm.iloc[:, i-1] == 0) & (self.base_interm.iloc[:, i] == 1)]))
         self.base_build.loc['A'] = [float("NaN")] + a
         self.base_build.loc['S'] = [float("NaN")] + list(self.base_build.loc['E'].iloc[1:]-self.base_build.loc['B'].iloc[1:]-self.base_build.loc['A'].iloc[1:])
-        self.base_build.loc['Churn %'] = [float("NaN")] + list(self.base_build.loc['S'].iloc[1:]/self.base_build.loc['B'].iloc[1:])
+        self.base_build.loc['Churn %'] = [float("NaN")] + list(self.base_build.loc['S'].iloc[1:]/self.base_build.loc['B'].iloc[1:].replace({0:np.nan}))
 
     def rev_build_support(self):
         # Calculate upsell formulas
@@ -215,9 +215,9 @@ class Dashboard:
         self.rev_build.loc['Total Additions'] = [float("NaN")] + list(self.rev_build.loc['Increase'].iloc[1:]+self.rev_build.loc['New customers'].iloc[1:])
         self.rev_build.loc['Total Subtractions'] = [float("NaN")] + list(self.rev_build.loc['Decrease'].iloc[1:]+self.rev_build.loc['Lost customers'].iloc[1:])
 
-        self.rev_build.loc['Gross Churn %'] = [float("NaN")] + list(self.rev_build.loc['Total Subtractions'].iloc[1:]/self.rev_build.loc['Beginning MRR'].iloc[1:])
-        self.rev_build.loc['Upsell %'] = [float("NaN")] + list(self.rev_build.loc['Increase'].iloc[1:]/self.rev_build.loc['Beginning MRR'].iloc[1:])
-        self.rev_build.loc['New customer %'] = [float("NaN")] + list(self.rev_build.loc['New customers'].iloc[1:]/self.rev_build.loc['Ending MRR'].iloc[1:])
+        self.rev_build.loc['Gross Churn %'] = [float("NaN")] + list(self.rev_build.loc['Total Subtractions'].iloc[1:]/self.rev_build.loc['Beginning MRR'].iloc[1:].replace({0:np.nan}))
+        self.rev_build.loc['Upsell %'] = [float("NaN")] + list(self.rev_build.loc['Increase'].iloc[1:]/self.rev_build.loc['Beginning MRR'].iloc[1:].replace({0:np.nan}))
+        self.rev_build.loc['New customer %'] = [float("NaN")] + list(self.rev_build.loc['New customers'].iloc[1:]/self.rev_build.loc['Ending MRR'].iloc[1:].replace({0:np.nan}))
 
     def label_helper(self, data, label):
         labels_dict = {
@@ -272,14 +272,14 @@ class Dashboard:
         index = ["Growth", "ARR YoY", "Revenue YoY", "Recurring Revenue YoY", "Professional Services YoY", "Revenue Period over Period", "Gross Margin", "Recurring Revenue Gross Margin", "Professional Services Gross Margin", "Contribution Margin", "Recurring Revenue Contribution Margin", "% of Sales", "Expenses", "R&D", "S&M", "G&A", "EBIT Margin"]
         self.oper_stats = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
         self.oper_stats.set_index(pd.Series(index, name='Operating Statistics'), inplace=True)
-        self.oper_stats.loc['ARR YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['ARR'].iloc[12:].array/self.fin_perf.loc['ARR'].iloc[:-12].array-1)
-        self.oper_stats.loc['Revenue YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Revenue'].iloc[12:].array/self.fin_perf.loc['Revenue'].iloc[:-12].array-1)
-        self.oper_stats.loc['Recurring Revenue YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Recurring Revenue'].iloc[12:].array/self.fin_perf.loc['Recurring Revenue'].iloc[:-12].array-1)
-        self.oper_stats.loc['Professional Services YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Professional Services'].iloc[12:].array/self.fin_perf.loc['Professional Services'].iloc[:-12].array-1)
-        self.oper_stats.loc['Revenue Period over Period'] = ["N/A"] + list(self.fin_perf.loc['Revenue'].iloc[1:].array/self.fin_perf.loc['Revenue'].iloc[:-1].array-1)
+        self.oper_stats.loc['ARR YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['ARR'].iloc[12:].array/self.fin_perf.loc['ARR'].iloc[:-12].replace({0:np.nan}).array-1)
+        self.oper_stats.loc['Revenue YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Revenue'].iloc[12:].array/self.fin_perf.loc['Revenue'].iloc[:-12].replace({0:np.nan}).array-1)
+        self.oper_stats.loc['Recurring Revenue YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Recurring Revenue'].iloc[12:].array/self.fin_perf.loc['Recurring Revenue'].iloc[:-12].replace({0:np.nan}).array-1)
+        self.oper_stats.loc['Professional Services YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['Professional Services'].iloc[12:].array/self.fin_perf.loc['Professional Services'].iloc[:-12].replace({0:np.nan}).array-1)
+        self.oper_stats.loc['Revenue Period over Period'] = ["N/A"] + list(self.fin_perf.loc['Revenue'].iloc[1:].array/self.fin_perf.loc['Revenue'].iloc[:-1].replace({0:np.nan}).array-1)
         self.oper_stats.loc['Gross Margin'] = self.fin_perf.loc['Gross Profit'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
-        self.oper_stats.loc['Recurring Revenue Gross Margin'] = list((self.fin_perf.loc['Recurring Revenue']+self.fin_perf.loc['Recurring Revenue COGS'])/self.fin_perf.loc['Recurring Revenue'])
-        self.oper_stats.loc['Professional Services Gross Margin'] = list((self.fin_perf.loc['Professional Services']+self.fin_perf.loc['Professional Services COGS'])/self.fin_perf.loc['Professional Services'])
+        self.oper_stats.loc['Recurring Revenue Gross Margin'] = list((self.fin_perf.loc['Recurring Revenue']+self.fin_perf.loc['Recurring Revenue COGS'])/self.fin_perf.loc['Recurring Revenue'].replace({0:np.nan}))
+        self.oper_stats.loc['Professional Services Gross Margin'] = list((self.fin_perf.loc['Professional Services']+self.fin_perf.loc['Professional Services COGS'])/self.fin_perf.loc['Professional Services'].replace({0:np.nan}))
         self.oper_stats.loc['Contribution Margin'] = self.oper_stats.loc['Gross Margin']
         self.oper_stats.loc['Recurring Revenue Contribution Margin'] = self.oper_stats.loc['Recurring Revenue Gross Margin']
         self.oper_stats.loc['Expenses'] = self.fin_perf.loc['Expenses'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
@@ -297,7 +297,7 @@ class Dashboard:
         self.oper_metrics.loc[base_index] = self.base_build.loc[base_index]
         self.oper_metrics.loc[rev_index] = self.rev_build.loc[rev_index]
         self.oper_metrics.loc['Ending ARR'] = self.oper_metrics.loc['Ending MRR']*12
-        self.oper_metrics.loc['Net Churn %'] = list((self.oper_metrics.loc['Total Subtractions']+self.oper_metrics.loc['Increase'])/self.oper_metrics.loc['Beginning MRR'])
+        self.oper_metrics.loc['Net Churn %'] = list((self.oper_metrics.loc['Total Subtractions']+self.oper_metrics.loc['Increase'])/self.oper_metrics.loc['Beginning MRR'].replace({0:np.nan}))
 
     def balance_sheet(self):
         index = ["ASSETS", "Current Assets", "Cash", "AR", "Other Current Assets", "Total Current Assets", "Fixed Assets", "Other Non-Current Assets", "Total Non-Current Assets", "TOTAL ASSETS", "LIABILITIES", "Current Liabilities", "AP", "Other Current Liabilities", "Total Current Liabilities", "Long-Term Liabilities", "TOTAL LIABILITIES", "EQUITY", "Common Stock", "Distributions", "Retained Earnings", "Preferred Stock", "Accumulated Other Comprehensive Income", "Total Equity", "TOTAL LIABILITIES & EQUITY"]
@@ -352,8 +352,8 @@ class Dashboard:
         self.oth_metrics.loc['TTM Ratio'][:12] = [float("NaN")]*12
         self.oth_metrics.loc['TTM Ratio*'][:12] = [float("NaN")]*12
         for i in range(12, self.oth_metrics.shape[1]):
-            self.oth_metrics.loc['TTM Ratio'][i] = -self.oth_metrics.loc['Net New ARR'].iloc[i-11:i+1].sum()/self.oth_metrics.loc['EBITDA'].iloc[i-11:i+1].sum()
-            self.oth_metrics.loc['TTM Ratio*'][i] = -self.oth_metrics.loc['Net New ARR*'].iloc[i-11:i+1].sum()/self.oth_metrics.loc['FCF'].iloc[i-11:i+1].sum()
+            self.oth_metrics.loc['TTM Ratio'][i] = -self.oth_metrics.loc['Net New ARR'].iloc[i-11:i+1].sum()/(self.oth_metrics.loc['EBITDA'].iloc[i-11:i+1].sum() if self.oth_metrics.loc['EBITDA'].iloc[i-11:i+1].sum() != 0 else float("NaN"))
+            self.oth_metrics.loc['TTM Ratio*'][i] = -self.oth_metrics.loc['Net New ARR*'].iloc[i-11:i+1].sum()/(self.oth_metrics.loc['FCF'].iloc[i-11:i+1].sum() if self.oth_metrics.loc['FCF'].iloc[i-11:i+1].sum() != 0 else float("NaN"))
         self.oth_metrics.loc['FCF margin'] = self.oth_metrics.loc['FCF'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan})*1000)
         self.oth_metrics.loc['ARR Growth'] = [float("NaN")] + list(self.oper_stats.loc['ARR YoY'][1:])
         self.oth_metrics.loc['Efficiency Score'] = [float("NaN")] + ["N/A"]*11 + list(self.oth_metrics.loc[['FCF margin', 'ARR Growth']].iloc[:, 12:].sum())

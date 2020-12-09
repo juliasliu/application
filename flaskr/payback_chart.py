@@ -111,7 +111,8 @@ class PaybackChart:
             self.cm.iloc[i] = pd.Series([float("NaN")]*i + [self.cm.iloc[i,j-i]*self.oper_stats.loc["Recurring Revenue Contribution Margin", self.oper_stats.columns[j]] for j in range(i, self.oper_stats.shape[1])], self.cm.columns)
         self.cm = self.cm.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.cm.set_axis(self.cm.columns[self.cm.columns], axis=1, inplace=False)
-        self.cm[self.cm.shape[1]] = pd.Series([0]*self.cm.shape[0])
+        for i in range(self.cm.shape[1], self.oper_stats.shape[1]):
+            self.cm[i] = pd.Series([0]*self.cm.shape[0])
 
     def cumulative_cm_per_customer(self):
         self.cumulative_cm_per = self.cumulative.copy()
@@ -126,7 +127,8 @@ class PaybackChart:
         self.sm_raw = self.sm.copy()
         self.sm = self.sm.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
         self.sm.set_axis(self.sm.columns[self.sm.columns], axis=1, inplace=False)
-        self.sm[self.sm.shape[1]] = pd.Series([0]*self.sm.shape[0])
+        for i in range(self.sm.shape[1], self.cac.shape[1]):
+            self.sm[i] = pd.Series([0]*self.sm.shape[0])
 
     def sm_per_customer(self):
         self.sm_per = self.sm.copy()

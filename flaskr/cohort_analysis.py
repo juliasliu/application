@@ -133,28 +133,30 @@ class CohortAnalysis:
         self.rev_cohorts = self.rev_cohorts.iloc[1:]
         self.rev_cohorts.sort_values('Cohort')
         self.rev_cohorts = self.rev_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
-        self.rev_cohorts.set_axis(self.rev_cohorts.columns[self.rev_cohorts.columns], axis=1, inplace=False)
-        self.rev_cohorts[self.rev_cohorts.shape[1]] = pd.Series([0]*self.rev_cohorts.shape[0])
+        for i in range(self.rev_cohorts.shape[1], self.mrr.shape[1]-1):
+            self.rev_cohorts[i] = pd.Series([0]*self.rev_cohorts.shape[0])
 
     def customer_cohorts(self):
         self.cust_cohorts = self.mrr_cohorts.groupby(by=['Cohort']).agg(lambda x: x.ne(0).sum())
         self.cust_cohorts = self.cust_cohorts.iloc[1:]
         self.cust_cohorts.sort_values('Cohort')
         self.cust_cohorts = self.cust_cohorts.apply(lambda x: pd.Series(x[x != 0].dropna().values), axis=1)
-        self.cust_cohorts.set_axis(self.cust_cohorts.columns[self.cust_cohorts.columns], axis=1, inplace=False)
-        self.cust_cohorts[self.cust_cohorts.shape[1]] = pd.Series([0]*self.cust_cohorts.shape[0])
+        for i in range(self.cust_cohorts.shape[1], self.mrr.shape[1]-1):
+            self.cust_cohorts[i] = pd.Series([0]*self.cust_cohorts.shape[0])
 
     def revenue_retention(self):
         self.rev_retention = pd.DataFrame(index=np.arange(self.rev_cohorts.shape[0]))
         self.rev_retention.set_index(self.rev_cohorts.index, inplace=True)
         self.rev_retention = self.rev_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
-        self.rev_retention[self.rev_retention.shape[1]] = pd.Series([0]*self.rev_retention.shape[0])
+        for i in range(self.rev_retention.shape[1], self.mrr.shape[1]-1):
+            self.rev_retention[i] = pd.Series([0]*self.rev_retention.shape[0])
 
     def logo_retention(self):
         self.logo_retention = pd.DataFrame(index=np.arange(self.cust_cohorts.shape[0]))
         self.logo_retention.set_index(self.cust_cohorts.index, inplace=True)
         self.logo_retention = self.cust_cohorts.apply(lambda x: x/x.iloc[0], axis=1)
-        self.logo_retention[self.logo_retention.shape[1]] = pd.Series([0]*self.logo_retention.shape[0])
+        for i in range(self.logo_retention.shape[1], self.mrr.shape[1]-1):
+            self.logo_retention[i] = pd.Series([0]*self.logo_retention.shape[0])
 
     def cumulative(self):
         self.cumulative = self.rev_cohorts.copy()

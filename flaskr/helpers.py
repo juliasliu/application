@@ -28,10 +28,10 @@ def filter_to_dec(x):
         new_x = new_x.strip().replace(',', '')
         if new_x != '' and new_x.strip('%').strip('$') != '-':
             if '%' in new_x:
-                new_x = new_x.strip('%')
+                new_x = new_x.replace('%', '')
                 is_percent = True
             if '$' in new_x:
-                new_x = new_x.strip('$')
+                new_x = new_x.replace('$', '')
             if '(' in new_x and ')' in new_x:
                 new_x = -float(new_x.strip('(').strip(')'))
             else:

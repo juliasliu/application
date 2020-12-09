@@ -90,7 +90,7 @@ function ProcessExcel(data) {
 
   // Name and rows from each sheet
   var sheets = {};
-  workbook.SheetNames.forEach(sheetName => sheets[sheetName] = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]));
+  workbook.SheetNames.forEach(sheetName => sheets[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""}));
   var is_dict = {}
   var bs_dict = {}
   var cf_dict = {}

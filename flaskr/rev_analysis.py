@@ -114,7 +114,8 @@ class RevAnalysis:
 
     def mrr_by_customer(self):
         self.mrr = self.arr.copy()/12
-        self.mrr.loc["ARR"] = (self.mrr.iloc[-1:]*12).iloc[0]
+        self.mrr.loc["Grand Total"] = self.mrr.sum()
+        self.mrr.loc["ARR"] = (self.mrr.loc["Grand Total"]*12).iloc[0]
 
         # Only keep the last 3 years
         self.years = pd.to_datetime(self.mrr.columns).strftime('%Y')
