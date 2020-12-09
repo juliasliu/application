@@ -11,30 +11,12 @@ from .helpers import *
 
 class Benchmark:
 
-    # ARR
-    # ARR YoY growth
-    # Total Revenue
-    # Total Revenue YoY growth
-    # Gross margin
-    # Contribution margin
-    # EBITDA Margin
-    # Last Month Cash Burn (CFO - CFI)
-    # S&M as % of Rev
-    # R&D as % of Rev
-    # G&A as % of Rev
-    # M13 Net $ Retention
-    # M13 Gross Logo Retention
-    # M13 Avg Cumulative Revenue Per Customer
-    # CAC (last quarter)
-    # Number of Customers (last month)
-    # Avg ARR per Customer
-    # Net New ARR in last Quarter
-    # Net New ARR in last Quarter / Cash Burn in Last Quarter
-
     def __init__(self, companies):
         print("INIT BENCHMARK")
-        self.fin_perf, self.oper_stats, self.cash_flow_stat, self.oth_metrics, self.rev_retention, self.logo_retention, self.cumulative, self.cac = {}, {}, {}, {}, {}, {}, {}, {}
+        self.mrr, self.fin_perf, self.oper_stats, self.cash_flow_stat, self.oth_metrics, self.rev_retention, self.logo_retention, self.cumulative = {}, {}, {}, {}, {}, {}, {}, {}
+        self.companies = companies;
         for company in companies.keys():
+            self.mrr[company] = pd.DataFrame(companies[company]["Rev Analysis"]["MRR by Customer"])
             self.fin_perf[company] = pd.DataFrame(companies[company]["Dashboard"]["Financial Performance"])
             self.oper_stats[company] = pd.DataFrame(companies[company]["Dashboard"]["Operating Statistics"])
             self.cash_flow_stat[company] = pd.DataFrame(companies[company]["Dashboard"]["Cash Flow Statement"])
@@ -42,10 +24,10 @@ class Benchmark:
             self.rev_retention[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Revenue Retention (Monthly)"])
             self.logo_retention[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Logo Retention (Monthly)"])
             self.cumulative[company] = pd.DataFrame(companies[company]["Cohort Analysis"]["Cumulative Revenue Per Customer (Monthly)"])
-            self.cac[company] = pd.DataFrame(companies[company]["CAC"]["CAC & CAC TTM"])
 
     def run(self):
         self.clean_inputs()
+        print(self.mrr)
         print(self.fin_perf)
         print(self.oper_stats)
         print(self.cash_flow_stat)
@@ -53,7 +35,6 @@ class Benchmark:
         print(self.rev_retention)
         print(self.logo_retention)
         print(self.cumulative)
-        print(self.cac)
 
         self.benchmark()
 
@@ -64,7 +45,10 @@ class Benchmark:
         return json
 
     def clean_inputs(self):
-        for company in self.fin_perf.keys():
+        for company in self.companies.keys():
+            self.mrr[company] = self.mrr[company].copy()
+            self.mrr[company].set_index("Customer", inplace=True)
+            self.mrr[company].apply(filter_to_dec_list)
             self.fin_perf[company] = self.fin_perf[company].copy()
             self.fin_perf[company].set_index("Financial Performance", inplace=True)
             self.fin_perf[company].apply(filter_to_dec_list)
@@ -86,20 +70,64 @@ class Benchmark:
             self.cumulative[company] = self.cumulative[company].copy()
             self.cumulative[company].set_index("Cohort", inplace=True)
             self.cumulative[company].apply(filter_to_dec_list)
-            self.cac[company] = self.cac[company].copy()
-            self.cac[company].set_index(self.cac[company].columns[0], inplace=True)
-            self.cac[company].apply(filter_to_dec_list)
 
     def clean_outputs(self):
         self.bm = self.bm.astype(object)
         self.bm.apply(nan_to_blank_list)
-        base_build_copy = self.bm.copy()
+        bm_copy = self.bm.copy()
         self.bm = self.bm.apply(numbers_with_commas_list)
-        # self.bm.loc['Churn %'] = base_build_copy.loc['Churn %'].apply(dec_to_percents)
+        self.bm['ARR YoY Growth'] = bm_copy['ARR YoY Growth'].apply(dec_to_percents)
+        self.bm['Total Revenue YoY Growth'] = bm_copy['Total Revenue YoY Growth'].apply(dec_to_percents)
+        self.bm['Gross Margin'] = bm_copy['Gross Margin'].apply(dec_to_percents)
+        self.bm['Contribution Margin'] = bm_copy['Contribution Margin'].apply(dec_to_percents)
+        self.bm['EBITDA Margin'] = bm_copy['EBITDA Margin'].apply(dec_to_percents)
+        self.bm['M13 Net Rev Retention'] = bm_copy['M13 Net Rev Retention'].apply(dec_to_percents)
+        self.bm['M13 Gross Logo Retention'] = bm_copy['M13 Gross Logo Retention'].apply(dec_to_percents)
+        self.bm['S&M as % of Rev'] = bm_copy['S&M as % of Rev'].apply(dec_to_percents)
+        self.bm['R&D as % of Rev'] = bm_copy['R&D as % of Rev'].apply(dec_to_percents)
+        self.bm['G&A as % of Rev'] = bm_copy['G&A as % of Rev'].apply(dec_to_percents)
         self.bm.reset_index(inplace=True)
 
         print("Benchmark")
         print(self.bm)
 
+    def label_helper(self, row_label):
+        sheet_source = self.bm_dict[row_label][0]
+        old_label = self.bm_dict[row_label][1]
+        col_label = self.bm_dict[row_label][2]
+        values = [(sheet_source[company].loc[old_label, col_label] if old_label in sheet_source[company].index and col_label in sheet_source[company].columns else float("NaN")) for company in self.companies.keys()]
+        self.bm[row_label] = values
+
     def benchmark(self):
-        self.bm = self.fin_perf["Icertis"].copy()
+        self.bm_dict = {
+            "ARR": [self.fin_perf, "ARR", list(self.fin_perf.values())[0].columns[-1]],
+            "ARR YoY Growth": [self.oper_stats, "ARR YoY", list(self.fin_perf.values())[0].columns[-1]],
+            "Total Revenue": [self.fin_perf, "Revenue", list(self.fin_perf.values())[0].columns[-1]],
+            "Total Revenue YoY Growth": [self.oper_stats, "Revenue YoY", list(self.fin_perf.values())[0].columns[-1]],
+            "Gross Margin": [self.oper_stats, "Gross Margin", list(self.oper_stats.values())[0].columns[-1]],
+            "Contribution Margin": [self.oper_stats, "Contribution Margin", list(self.oper_stats.values())[0].columns[-1]],
+            "EBITDA Margin": [self.oper_stats, "EBIT Margin", list(self.oper_stats.values())[0].columns[-1]],
+            "Avg ARR per Customer": [self.oth_metrics, "Avg ARR per Customer", list(self.oth_metrics.values())[0].columns[-1]],
+            "M13 Net Rev Retention": [self.rev_retention, "Median", "M13"],
+            "M13 Gross Logo Retention": [self.logo_retention, "Median", "M13"],
+            "M13 Avg Cumulative Revenue Per Customer": [self.cumulative, "Median", "M13"]
+        }
+        self.bm = pd.DataFrame(index=np.arange(len(self.companies)), columns=self.bm_dict.keys())
+        self.bm.set_index(pd.Series(self.companies.keys(), name='Company'), inplace=True)
+
+        for label in self.bm_dict.keys():
+            self.label_helper(label)
+
+        self.bm["Number of Customers in Last Month"] = [self.mrr[company].iloc[:, -1].count() for company in self.companies.keys()]
+        self.bm["Last Month Cash Burn (CFO - CFI)"] = [self.cash_flow_stat[company].loc["CFO"].iloc[-1]-self.cash_flow_stat[company].loc["CFI"].iloc[-1] for company in self.companies.keys()]
+        self.bm["S&M as % of Rev"] = [self.fin_perf[company].loc["S&M"].iloc[-1]/self.fin_perf[company].loc["Revenue"].iloc[-1] for company in self.companies.keys()]
+        self.bm["R&D as % of Rev"] = [self.fin_perf[company].loc["R&D"].iloc[-1]/self.fin_perf[company].loc["Revenue"].iloc[-1] for company in self.companies.keys()]
+        self.bm["G&A as % of Rev"] = [self.fin_perf[company].loc["G&A"].iloc[-1]/self.fin_perf[company].loc["Revenue"].iloc[-1] for company in self.companies.keys()]
+
+        bm_copy = self.bm.astype('float64')
+        self.bm.loc["Min"] = self.bm[self.bm != "NaN"].min()
+        self.bm.loc["25th Percentile"] = self.bm[self.bm != "NaN"].quantile(0.25)
+        self.bm.loc["Median"] = self.bm[self.bm != "NaN"].median()
+        self.bm.loc["Mean"] = self.bm[self.bm != "NaN"].mean()
+        self.bm.loc["75th Percentile"] = self.bm[self.bm != "NaN"].quantile(0.75)
+        self.bm.loc["Max"] = self.bm[self.bm != "NaN"].max()

@@ -167,9 +167,9 @@ class CohortAnalysis:
     def retention_statistics(self, data):
         data_copy = data.astype('float64')
         data.loc["Min"] = data_copy[data_copy != "NaN"].min()
-        data.loc["25th Percentile"] = data_copy.quantile(0.25)
+        data.loc["25th Percentile"] = data_copy[data_copy != "NaN"].quantile(0.25)
         data.loc["Median"] = data_copy[data_copy != "NaN"].median()
         data.loc["Mean"] = data_copy[data_copy != "NaN"].mean()
-        data.loc["75th Percentile"] = data_copy.quantile(0.75)
+        data.loc["75th Percentile"] = data_copy[data_copy != "NaN"].quantile(0.75)
         data.loc["Max"] = data_copy[data_copy != "NaN"].max()
         data['# Customers'] = self.cust_cohorts.iloc[:, 0]
