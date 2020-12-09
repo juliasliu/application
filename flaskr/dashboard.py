@@ -219,57 +219,45 @@ class Dashboard:
         self.rev_build.loc['Upsell %'] = [float("NaN")] + list(self.rev_build.loc['Increase'].iloc[1:]/self.rev_build.loc['Beginning MRR'].iloc[1:].replace({0:np.nan}))
         self.rev_build.loc['New customer %'] = [float("NaN")] + list(self.rev_build.loc['New customers'].iloc[1:]/self.rev_build.loc['Ending MRR'].iloc[1:].replace({0:np.nan}))
 
-    def label_helper(self, data, label):
-        labels_dict = {
+    def label_helper(self, labels_dict, data, label):
+        old_label = labels_dict[label][1]
+        sheet_source = labels_dict[label][0]
+        values = [sheet_source[col.split("/")[1]][sheet_source[col.split("/")[1]]['Labels']==old_label].loc[:, col].sum()/1000 for col in data.columns]
+        data.loc[label] = [-value for value in values] if label in ["COGS", "Recurring Revenue COGS", "Professional Services COGS", "R&D", "S&M", "Customer Success", "G&A", "Uncategorized Expense", "D&A", "Interest Expense"] else values
+
+    def financial_performance(self):
+        index = ["ARR", "Revenue", "Recurring Revenue", "Non-Recurring Revenue", "Professional Services", "COGS", "Recurring Revenue COGS", "Professional Services COGS", "Gross Profit", "Expenses", "R&D", "S&M", "Customer Success", "G&A", "EBITDA", "Uncategorized Expense", "D&A", "Interest Expense", "Net Other Income", "Net Income"]
+        self.fin_perf = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
+        self.fin_perf.set_index(pd.Series(index, name='Financial Performance'), inplace=True)
+        fin_perf_dict = {
             "Recurring Revenue": [self.income_stat, "Recurring Revenue"],
+            "Non-Recurring Revenue": [self.income_stat, "Non-Recurring Revenue"],
             "Professional Services": [self.income_stat, "Professional Services"],
+            "COGS": [self.income_stat, "COGS"],
             "Recurring Revenue COGS": [self.income_stat, "Recurring Revenue COGS"],
             "Professional Services COGS": [self.income_stat, "Professional Services COGS"],
             "R&D": [self.income_stat, "R&D"],
             "S&M": [self.income_stat, "S&M"],
+            "Customer Success": [self.income_stat, "Customer Success"],
             "G&A": [self.income_stat, "G&A"],
-            "Cash": [self.balance_sh, "Cash"],
-            "AR": [self.balance_sh, "AR"],
-            "Other Current Assets": [self.balance_sh, "Other Current Assets"],
-            "Fixed Assets": [self.balance_sh, "Fixed Assets"],
-            "Other Non-Current Assets": [self.balance_sh, "Other Non-Current Assets"],
-            "AP": [self.balance_sh, "AP"],
-            "Other Current Liabilities": [self.balance_sh, "Other Current Liabilities"],
-            "Long-Term Liabilities": [self.balance_sh, "Long-Term Liabilities"],
-            "Common Stock": [self.balance_sh, "Common Stock"],
-            "Distributions": [self.balance_sh, "Distributions"],
-            "Retained Earnings": [self.balance_sh, "Retained Earnings"],
-            "Preferred Stock": [self.balance_sh, "Preferred Stock"],
-            "Accumulated Other Comprehensive Income": [self.balance_sh, "Accumulated Other Comprehensive Income"],
-            "CFO": [self.cash_flow, "Net cash provided by operating activities"],
-            "CFI": [self.cash_flow, "Net cash provided by investing activities"],
-            "CFF": [self.cash_flow, "Net cash provided by financing activities"],
+            "Uncategorized Expense": [self.income_stat, "Uncategorized Expense"],
+            "D&A": [self.income_stat, "D&A"],
+            "Interest Expense": [self.income_stat, "Interest Expense"],
+            "Net Other Income": [self.income_stat, "Net Other Income"],
         }
-        old_label = labels_dict[label][1]
-        sheet_source = labels_dict[label][0]
-        values = [sheet_source[col.split("/")[1]][sheet_source[col.split("/")[1]]['Labels']==old_label].loc[:, col].sum()/1000 for col in data.columns]
-        data.loc[label] = [-value for value in values] if label in ["Recurring Revenue COGS", "Professional Services COGS", "R&D", "S&M", "G&A"] else values
+        for label in fin_perf_dict.keys():
+            self.label_helper(fin_perf_dict, self.fin_perf, label)
 
-    def financial_performance(self):
-        index = ["ARR", "Revenue", "Recurring Revenue", "Professional Services", "COGS", "Recurring Revenue COGS", "Professional Services COGS", "Gross Profit", "Expenses", "R&D", "S&M", "G&A", "EBIT"]
-        self.fin_perf = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
-        self.fin_perf.set_index(pd.Series(index, name='Financial Performance'), inplace=True)
-        self.label_helper(self.fin_perf, "Recurring Revenue")
-        self.label_helper(self.fin_perf, "Professional Services")
-        self.label_helper(self.fin_perf, "Recurring Revenue COGS")
-        self.label_helper(self.fin_perf, "Professional Services COGS")
-        self.label_helper(self.fin_perf, "R&D")
-        self.label_helper(self.fin_perf, "S&M")
-        self.label_helper(self.fin_perf, "G&A")
         self.fin_perf.loc['ARR'] = list(self.oper_metrics.loc['Ending ARR']/1000)
-        self.fin_perf.loc['Revenue'] = list(self.fin_perf.loc[['Recurring Revenue', 'Professional Services']].sum())
-        self.fin_perf.loc['COGS'] = list(self.fin_perf.loc[['Recurring Revenue COGS', 'Professional Services COGS']].sum())
+        self.fin_perf.loc['Revenue'] = list(self.fin_perf.loc[['Recurring Revenue', 'Non-Recurring Revenue', 'Professional Services']].sum())
+        self.fin_perf.loc['COGS'] = list(self.fin_perf.loc[['COGS', 'Recurring Revenue COGS', 'Professional Services COGS']].sum())
         self.fin_perf.loc['Gross Profit'] = list(self.fin_perf.loc[['Revenue', 'COGS']].sum())
-        self.fin_perf.loc['Expenses'] = list(self.fin_perf.loc[['R&D', 'S&M', 'G&A']].sum())
-        self.fin_perf.loc['EBIT'] = list(self.fin_perf.loc[['Gross Profit', 'Expenses']].sum())
+        self.fin_perf.loc['Expenses'] = list(self.fin_perf.loc[['R&D', 'S&M', 'Customer Success', 'G&A']].sum())
+        self.fin_perf.loc['EBITDA'] = list(self.fin_perf.loc[['Gross Profit', 'Expenses']].sum())
+        self.fin_perf.loc['Net Income'] = list(self.fin_perf.loc[['EBITDA', 'Uncategorized Expense', 'D&A', 'Interest Expense', 'Net Other Income']].sum())
 
     def operating_statistics(self):
-        index = ["Growth", "ARR YoY", "Revenue YoY", "Recurring Revenue YoY", "Professional Services YoY", "Revenue Period over Period", "Gross Margin", "Recurring Revenue Gross Margin", "Professional Services Gross Margin", "Contribution Margin", "Recurring Revenue Contribution Margin", "% of Sales", "Expenses", "R&D", "S&M", "G&A", "EBIT Margin"]
+        index = ["Growth", "ARR YoY", "Revenue YoY", "Recurring Revenue YoY", "Professional Services YoY", "Revenue Period over Period", "Gross Margin", "Recurring Revenue Gross Margin", "Professional Services Gross Margin", "Contribution Margin", "Recurring Revenue Contribution Margin", "% of Sales", "Expenses", "R&D", "S&M", "G&A", "EBITDA Margin"]
         self.oper_stats = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
         self.oper_stats.set_index(pd.Series(index, name='Operating Statistics'), inplace=True)
         self.oper_stats.loc['ARR YoY'] = ["N/A"]*12 + list(self.fin_perf.loc['ARR'].iloc[12:].array/self.fin_perf.loc['ARR'].iloc[:-12].replace({0:np.nan}).array-1)
@@ -286,7 +274,7 @@ class Dashboard:
         self.oper_stats.loc['R&D'] = self.fin_perf.loc['R&D'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
         self.oper_stats.loc['S&M'] = self.fin_perf.loc['S&M'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
         self.oper_stats.loc['G&A'] = self.fin_perf.loc['G&A'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
-        self.oper_stats.loc['EBIT Margin'] = self.fin_perf.loc['EBIT'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
+        self.oper_stats.loc['EBITDA Margin'] = self.fin_perf.loc['EBITDA'].div(self.fin_perf.loc['Revenue'].replace({0:np.nan}))
 
     def operating_metrics(self):
         base_index = ["B", "A", "S", "E", "Churn %"]
@@ -300,42 +288,57 @@ class Dashboard:
         self.oper_metrics.loc['Net Churn %'] = list((self.oper_metrics.loc['Total Subtractions']+self.oper_metrics.loc['Increase'])/self.oper_metrics.loc['Beginning MRR'].replace({0:np.nan}))
 
     def balance_sheet(self):
-        index = ["ASSETS", "Current Assets", "Cash", "AR", "Other Current Assets", "Total Current Assets", "Fixed Assets", "Other Non-Current Assets", "Total Non-Current Assets", "TOTAL ASSETS", "LIABILITIES", "Current Liabilities", "AP", "Other Current Liabilities", "Total Current Liabilities", "Long-Term Liabilities", "TOTAL LIABILITIES", "EQUITY", "Common Stock", "Distributions", "Retained Earnings", "Preferred Stock", "Accumulated Other Comprehensive Income", "Total Equity", "TOTAL LIABILITIES & EQUITY"]
+        index = ["ASSETS", "Current Assets", "Cash", "AR", "Other Current Assets", "Total Current Assets", "Fixed Assets", "Other Non-Current Assets", "Total Non-Current Assets", "TOTAL ASSETS", "LIABILITIES", "Current Liabilities", "AP", "Deferred Revenue", "Other Current Liabilities", "Total Current Liabilities", "Loans Payable", "Long-Term Liabilities", "TOTAL LIABILITIES", "EQUITY", "Common Stock", "Distributions", "Retained Earnings", "Preferred Stock", "Accumulated Other Comprehensive Income", "Total Equity", "TOTAL LIABILITIES & EQUITY"]
         self.bal_sheet = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
         self.bal_sheet.set_index(pd.Series(index, name='Balance Sheet'), inplace=True)
-        self.label_helper(self.bal_sheet, "Cash")
-        self.label_helper(self.bal_sheet, "AR")
-        self.label_helper(self.bal_sheet, "Other Current Assets")
-        self.label_helper(self.bal_sheet, "Fixed Assets")
-        self.label_helper(self.bal_sheet, "Other Non-Current Assets")
-        self.label_helper(self.bal_sheet, "AP")
-        self.label_helper(self.bal_sheet, "Other Current Liabilities")
-        self.label_helper(self.bal_sheet, "Long-Term Liabilities")
-        self.label_helper(self.bal_sheet, "Common Stock")
-        self.label_helper(self.bal_sheet, "Distributions")
-        self.label_helper(self.bal_sheet, "Retained Earnings")
-        self.label_helper(self.bal_sheet, "Preferred Stock")
-        self.label_helper(self.bal_sheet, "Accumulated Other Comprehensive Income")
+        bal_sheet_dict = {
+            "Cash": [self.balance_sh, "Cash"],
+            "AR": [self.balance_sh, "AR"],
+            "Other Current Assets": [self.balance_sh, "Other Current Assets"],
+            "Fixed Assets": [self.balance_sh, "Fixed Assets"],
+            "Other Non-Current Assets": [self.balance_sh, "Other Non-Current Assets"],
+            "AP": [self.balance_sh, "AP"],
+            "Deferred Revenue": [self.balance_sh, "Deferred Revenue"],
+            "Other Current Liabilities": [self.balance_sh, "Other Current Liabilities"],
+            "Loans Payable": [self.balance_sh, "Loans Payable"],
+            "Long-Term Liabilities": [self.balance_sh, "Long-Term Liabilities"],
+            "Common Stock": [self.balance_sh, "Common Stock"],
+            "Distributions": [self.balance_sh, "Distributions"],
+            "Retained Earnings": [self.balance_sh, "Retained Earnings"],
+            "Preferred Stock": [self.balance_sh, "Preferred Stock"],
+            "Accumulated Other Comprehensive Income": [self.balance_sh, "Accumulated Other Comprehensive Income"],
+            "Total Equity": [self.balance_sh, "Total Equity"],
+        }
+        for label in bal_sheet_dict.keys():
+            self.label_helper(bal_sheet_dict, self.bal_sheet, label)
+
         self.bal_sheet.loc['Total Current Assets'] = list(self.bal_sheet.loc[['Cash', 'AR', 'Other Current Assets']].sum())
         self.bal_sheet.loc['Total Non-Current Assets'] = list(self.bal_sheet.loc[['Fixed Assets', 'Other Non-Current Assets']].sum())
         self.bal_sheet.loc['TOTAL ASSETS'] = list(self.bal_sheet.loc[['Total Current Assets', 'Total Non-Current Assets']].sum())
-        self.bal_sheet.loc['Total Current Liabilities'] = list(self.bal_sheet.loc[['AP', 'Other Current Liabilities']].sum())
+        self.bal_sheet.loc['Total Current Liabilities'] = list(self.bal_sheet.loc[['AP', 'Deferred Revenue', 'Other Current Liabilities']].sum())
+        self.bal_sheet.loc['Long-Term Liabilities'] = list(self.bal_sheet.loc[['Long-Term Liabilities', 'Loans Payable']].sum())
         self.bal_sheet.loc['TOTAL LIABILITIES'] = list(self.bal_sheet.loc[['Total Current Liabilities', 'Long-Term Liabilities']].sum())
-        self.bal_sheet.loc['Total Equity'] = list(self.bal_sheet.loc[['Common Stock', 'Distributions', 'Retained Earnings', 'Preferred Stock', 'Accumulated Other Comprehensive Income']].sum())
+        self.bal_sheet.loc['Total Equity'] = list(self.bal_sheet.loc[['Total Equity', 'Common Stock', 'Distributions', 'Retained Earnings', 'Preferred Stock', 'Accumulated Other Comprehensive Income']].sum())
         self.bal_sheet.loc['TOTAL LIABILITIES & EQUITY'] = list(self.bal_sheet.loc[['TOTAL LIABILITIES', 'Total Equity']].sum())
 
     def cash_flow_statement(self):
-        index = ["CFO", "CFI", "CFF", "Increase (Decrease) in Cash", "Cash at beginning of period", "Cash at end of period"]
+        index = ["CFO", "CFI", "CFF", "Increase (Decrease) in Cash", "Cash at beginning of period", "Cash at end of period", "Free Cash Flow"]
         self.cash_flow_stat = pd.DataFrame(index=np.arange(len(index)), columns=self.mrr.columns)
         self.cash_flow_stat.set_index(pd.Series(index, name='Cash Flow Statement'), inplace=True)
-        self.label_helper(self.cash_flow_stat, "CFO")
-        self.label_helper(self.cash_flow_stat, "CFI")
-        self.label_helper(self.cash_flow_stat, "CFF")
+        cash_flow_stat_dict = {
+            "CFO": [self.cash_flow, "Net cash provided by operating activities"],
+            "CFI": [self.cash_flow, "Net cash provided by investing activities"],
+            "CFF": [self.cash_flow, "Net cash provided by financing activities"],
+        }
+        for label in cash_flow_stat_dict.keys():
+            self.label_helper(cash_flow_stat_dict, self.cash_flow_stat, label)
+
         self.cash_flow_stat.loc['Increase (Decrease) in Cash'] = list(self.cash_flow_stat.loc[['CFO', 'CFI', 'CFF']].sum())
         self.cash_flow_stat.loc['Cash at end of period'][0] = self.bal_sheet.loc['Cash'][0]
         for i in range(1, self.cash_flow_stat.shape[1]):
             self.cash_flow_stat.loc['Cash at end of period'][i] = self.cash_flow_stat.loc['Cash at end of period'][i-1] + self.cash_flow_stat.loc['Increase (Decrease) in Cash'][i]
         self.cash_flow_stat.loc['Cash at beginning of period'] = [float("NaN")] + list(self.cash_flow_stat.loc['Cash at end of period'].iloc[:-1])
+        self.cash_flow_stat.loc['Free Cash Flow'] = list(self.cash_flow_stat.loc[['CFO', 'CFI']].sum())
 
     def other_metrics(self):
         index = ["ARR", "Net New ARR", "EBITDA", "Ratio", "TTM Ratio", "Net New ARR*", "FCF", "Ratio*", "TTM Ratio*", "FCF*", "FCF margin", "ARR Growth", "Efficiency Score", "Avg ARR per Customer", "Total Additions", "Total Subtractions", "Quick Ratio"]
@@ -343,7 +346,7 @@ class Dashboard:
         self.oth_metrics.set_index(pd.Series(index, name='Other Metrics'), inplace=True)
         self.oth_metrics.loc['ARR'] = self.oper_metrics.loc['Ending ARR']
         self.oth_metrics.loc['Net New ARR'] = [float("NaN")] + list(self.oth_metrics.loc['ARR'].iloc[1:].array-self.oth_metrics.loc['ARR'].iloc[:-1].array)
-        self.oth_metrics.loc['EBITDA'] = [float("NaN")] + list(self.fin_perf.loc['EBIT'].iloc[1:]*1000)
+        self.oth_metrics.loc['EBITDA'] = [float("NaN")] + list(self.fin_perf.loc['EBITDA'].iloc[1:]*1000)
         self.oth_metrics.loc['Ratio'] = self.oth_metrics.loc['Net New ARR'].div(-self.oth_metrics.loc['EBITDA'].replace({0:np.nan}))
         self.oth_metrics.loc['Net New ARR*'] = self.oth_metrics.loc['Net New ARR']
         self.oth_metrics.loc['FCF'] = [float("NaN")] + list(self.cash_flow_stat.loc[['CFO', 'CFI']].iloc[:, 1:].sum()*1000)

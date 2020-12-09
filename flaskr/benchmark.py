@@ -106,7 +106,7 @@ class Benchmark:
             "Total Revenue YoY Growth": [self.oper_stats, "Revenue YoY", list(self.fin_perf.values())[0].columns[-1]],
             "Gross Margin": [self.oper_stats, "Gross Margin", list(self.oper_stats.values())[0].columns[-1]],
             "Contribution Margin": [self.oper_stats, "Contribution Margin", list(self.oper_stats.values())[0].columns[-1]],
-            "EBITDA Margin": [self.oper_stats, "EBIT Margin", list(self.oper_stats.values())[0].columns[-1]],
+            "EBITDA Margin": [self.oper_stats, "EBITDA Margin", list(self.oper_stats.values())[0].columns[-1]],
             "Avg ARR per Customer": [self.oth_metrics, "Avg ARR per Customer", list(self.oth_metrics.values())[0].columns[-1]],
             "M13 Net Rev Retention": [self.rev_retention, "Median", "M13"],
             "M13 Gross Logo Retention": [self.logo_retention, "Median", "M13"],
