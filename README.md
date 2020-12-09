@@ -62,7 +62,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<img src="assets/img/screenshot.png" alt="Company_Page_Screenshot" width="2878" height="1418">
+<img src="assets/img/screenshot.png" alt="Company_Page_Screenshot" width="1000" height="490">
 
 
 ### Built With
