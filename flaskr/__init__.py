@@ -35,47 +35,52 @@ def create_app(test_config=None):
     # except OSError:
     #     pass
 
-    def analysis_helper(sheets):
-        r = RevAnalysis(sheets["ARR by Customer"])
-        r_res = r.run()
-        c = CohortAnalysis(r.mrr, r.rev_cohorts)
-        c_res = c.run()
+    def analysis_helper(companies):
+        company_dict = {}
+        for company in companies.keys():
+            sheets = companies[company]
 
-        is_dict, bs_dict, cf_dict= {}, {}, {}
-        for sheet_name in sheets.keys():
-            match = re.search(r'(\d+)', sheet_name)
-            if match:
-                year = match.group()
-                if "IS" in sheet_name:
-                    is_dict[year] = sheets[sheet_name]
-                if "BS" in sheet_name:
-                    bs_dict[year] = sheets[sheet_name]
-                if "CF" in sheet_name:
-                    cf_dict[year] = sheets[sheet_name]
-        years = sorted(is_dict.keys())
-        start_year = years[0]
-        end_year = years[-1]
+            r = RevAnalysis(sheets["ARR by Customer"])
+            r_res = r.run()
+            c = CohortAnalysis(r.mrr, r.rev_cohorts)
+            c_res = c.run()
 
-        d = Dashboard(r.mrr, r.rev_cohorts, is_dict, bs_dict, cf_dict)
-        d_res = d.run()
-        ca = CAC(d.fin_perf_raw, d.oper_metrics, d.oth_metrics)
-        ca_res = ca.run()
-        p = PaybackChart(c.rev_cohorts, c.cumulative, d.oper_stats_raw, ca.cac_ttm)
-        p_res = p.run()
-        rev = RevCharts(d.rev_build)
-        rev_res = rev.run()
+            is_dict, bs_dict, cf_dict= {}, {}, {}
+            for sheet_name in sheets.keys():
+                match = re.search(r'(\d+)', sheet_name)
+                if match:
+                    year = match.group()
+                    if "IS" in sheet_name:
+                        is_dict[year] = sheets[sheet_name]
+                    if "BS" in sheet_name:
+                        bs_dict[year] = sheets[sheet_name]
+                    if "CF" in sheet_name:
+                        cf_dict[year] = sheets[sheet_name]
+            years = sorted(is_dict.keys())
+            start_year = years[0]
+            end_year = years[-1]
 
-        res = {
-            "Rev Analysis": r_res,
-            "Cohort Analysis": c_res,
-            "Dashboard": d_res,
-            "CAC": ca_res,
-            "Payback Chart": p_res,
-            "Rev Charts": rev_res,
-            "start_year": start_year,
-            "end_year": end_year,
-        }
-        return json.dumps(res)
+            d = Dashboard(r.mrr, r.rev_cohorts, is_dict, bs_dict, cf_dict)
+            d_res = d.run()
+            ca = CAC(d.fin_perf_raw, d.oper_metrics, d.oth_metrics)
+            ca_res = ca.run()
+            p = PaybackChart(c.rev_cohorts, c.cumulative, d.oper_stats_raw, ca.cac_ttm)
+            p_res = p.run()
+            rev = RevCharts(d.rev_build)
+            rev_res = rev.run()
+
+            company_dict[company] = {
+                "Rev Analysis": r_res,
+                "Cohort Analysis": c_res,
+                "Dashboard": d_res,
+                "CAC": ca_res,
+                "Payback Chart": p_res,
+                "Rev Charts": rev_res,
+                "start_year": start_year,
+                "end_year": end_year,
+            }
+
+        return company_dict
 
     # a simple page that says hello
     @app.route('/')
@@ -84,23 +89,20 @@ def create_app(test_config=None):
 
     @app.route('/analysis', methods=['POST'])
     def analysis():
-        sheets = request.get_json()
-        return analysis_helper(sheets)
+        companies = request.get_json()
+        return json.dumps(analysis_helper(companies))
 
     @app.route('/benchmark', methods=['POST'])
     def benchmark():
         companies = request.get_json()
-        
-        # Run analysis on individual companies
-        company_dict = {}
-        for company in companies.keys():
-            company_dict[company] = json.loads(analysis_helper(companies[company]))
-        print(company_dict)
 
+        # Run analysis on individual companies
+        company_dict = analysis_helper(companies)
         b = Benchmark(company_dict)
         b_res = b.run()
         res = {
-            "Benchmark": b_res,
+            "Benchmark": { "Benchmark": b_res },
+            **company_dict,
         }
         return json.dumps(res)
 

@@ -8,18 +8,22 @@ function readSingleFile(evt) {
         // Parse sheets in Excel spreadsheet file
         var processed = ProcessExcel(contents);
         var sheets = processed[0];
-        var full_sheet_data = processed[1];
+        var company_dict = {};
+        company_dict[f.name.split(".")[0]] = sheets;
+        var data_dict = processed[1];
+        var company_data_dict = {};
+        company_data_dict[f.name.split(".")[0]] = data_dict;
 
         try {
           // Display data
-          displayData("input", full_sheet_data);
+          displayData("input", company_data_dict, false);
 
           // Run python script analysis
           $.ajax({
               type: "POST",
               url: "http://127.0.0.1:5000/analysis",
               contentType: 'application/json',
-              data: JSON.stringify(sheets),
+              data: JSON.stringify(company_dict),
               success: successFunc,
               error: errorFunc
           });
@@ -29,7 +33,8 @@ function readSingleFile(evt) {
 
         function successFunc(response) {
             // do something with the response
-            displayData("output", JSON.parse(response));
+            var res_json = JSON.parse(response);
+            displayData("output", res_json, false);
         }
 
         function errorFunc(error) {
@@ -61,23 +66,24 @@ function readMultipleFiles(evt) {
       function successFunc(response) {
           // do something with the response
           var res_json = JSON.parse(response);
-          console.log(res_json);
           displayCompanyCards(res_json);
-          displayData("output", res_json);
+          displayData("output", res_json, true);
       }
 
       function errorFunc(error) {
         alert("Failed to complete analysis. Make sure to check that your input files are in the correct format.");
       }
+    } else {
+      var f = files[index];
+      r.onload = function(e) {
+          var contents = e.target.result;
+          // Parse sheets in Excel spreadsheet file
+          var sheets = ProcessExcel(contents)[0];
+          company_dict[f.name.split(".")[0]] = sheets;
+          readFile(index + 1);
+      }
+      r.readAsBinaryString(f);
     }
-    var f = files[index];
-    r.onload = function(e) {
-        var contents = e.target.result;
-        // Parse sheets in Excel spreadsheet file
-        company_dict[f.name.split(".")[0]] = ProcessExcel(contents)[0];
-        readFile(index + 1);
-    }
-    r.readAsBinaryString(f);
   }
   readFile(0);
 }
@@ -105,65 +111,67 @@ function ProcessExcel(data) {
           cf_dict[sheet_name] = sheets[sheet_name]
     }
   }
-  var full_sheet_data = {
+  var data_dict = {
     "ARR by Customer": {"ARR by Customer": sheets["ARR by Customer"]},
     "IS": is_dict,
     "BS": bs_dict,
     "CF": cf_dict
   }
 
-  return [sheets, full_sheet_data];
+  return [sheets, data_dict];
 };
 
-function displayData(type, categories) {
+function displayData(type, companies, isBenchmark) {
+  for (company in companies) {
+    if (isBenchmark && company == "Benchmark" || !isBenchmark) {
+      var categories = companies[company];
+      for (category in categories) {
+        if (category != "start_year" && category != "end_year") {
+          var categoryNameFiltered = category.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
 
-  for (category in categories) {
+          var dropdown_btn =
+          '<div class="btn-group" role="group">' +
+            '<div class="dropdown page-item">' +
+              '<button id="' + categoryNameFiltered + '" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                category + '<span class="caret"></span>' +
+              '</button>' +
+              '<div class="dropdown-menu" id="' + categoryNameFiltered + '" aria-labelledby="' + categoryNameFiltered + '">'
 
-    if (category != "start_year" && category != "end_year") {
+          var sheets = categories[category];
+          for (sheet in sheets) {
+            // first line is thead
+            // be able to hide columns
+            var output = "<thead>";
+            output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
+            output += "</thead>";
 
-      var categoryNameFiltered = category.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
+            // subsequent lines are tbody
+            output += "<tbody>";
+            for (var i=0; i<sheets[sheet].length; i++){
+              output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+            }
+            output += "</tbody>";
 
-      var dropdown_btn =
-      '<div class="btn-group" role="group">' +
-        '<div class="dropdown page-item">' +
-          '<button id="' + categoryNameFiltered + '" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-            category + '<span class="caret"></span>' +
-          '</button>' +
-          '<div class="dropdown-menu" id="' + categoryNameFiltered + '" aria-labelledby="' + categoryNameFiltered + '">'
+            var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
 
-      var sheets = categories[category];
-      for (sheet in sheets) {
-        // first line is thead
-        // be able to hide columns
-        var output = "<thead>";
-        output += "<tr><th>" + Object.keys(sheets[sheet][0]).join("</th><th>") + "</th></tr>";
-        output += "</thead>";
+            // wrap entire table
+            output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
 
-        // subsequent lines are tbody
-        output += "<tbody>";
-        for (var i=0; i<sheets[sheet].length; i++){
-          output += "<tr><td>" + Object.values(sheets[sheet][i]).join("</td><td>") + "</td></tr>";
+            // add table and pagination link dropdown
+            $("#"+type+"-table-container").append(output);
+            dropdown_btn +=
+              '<li id="' + sheetNameFiltered + '">'+
+                '<a class="dropdown-item" onclick="sheetTabClicked(\'' + type + '\', \'' + category + '\', \'' + sheet + '\')">' + sheet + '</a>'+
+              '</li>'
+          }
+          dropdown_btn +=
+              '</div>' +
+            '</div>' +
+          '</div>'
+          $("#"+type+"-file-pagination").append(dropdown_btn);
+          $('.dropdown-menu#'+categoryNameFiltered+' li').first().addClass("active");
         }
-        output += "</tbody>";
-
-        var sheetNameFiltered = sheet.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '-');
-
-        // wrap entire table
-        output = '<table class="table table-sm table-bordered table-hover hidden" id="' + sheetNameFiltered + '" width="100%" cellspacing="0">' + output + "</table>";
-
-        // add table and pagination link dropdown
-        $("#"+type+"-table-container").append(output);
-        dropdown_btn +=
-          '<li id="' + sheetNameFiltered + '">'+
-            '<a class="dropdown-item" onclick="sheetTabClicked(\'' + type + '\', \'' + category + '\', \'' + sheet + '\')">' + sheet + '</a>'+
-          '</li>'
       }
-      dropdown_btn +=
-          '</div>' +
-        '</div>' +
-      '</div>'
-      $("#"+type+"-file-pagination").append(dropdown_btn);
-      $('.dropdown-menu#'+categoryNameFiltered+' li').first().addClass("active");
     }
   }
 
@@ -174,20 +182,22 @@ function displayData(type, categories) {
 
 function displayCompanyCards(companies) {
   for (company in companies) {
-    var companyCard =
-    '<div class="col-xl-3 col-md-4">' +
-        '<div class="card mb-4">' +
-            '<div class="card-body">' +
-              '<h5>' + company + '</h5>' +
-              '<div>' + company["start_year"] + '-' + company["end_year"] + '</div>' +
-            '</div>' +
-            '<div class="card-footer d-flex align-items-center justify-content-between">' +
-                '<a class="small stretched-link" href="#">View Details</a>' +
-                '<div class="small"><i class="fas fa-angle-right"></i></div>' +
-            '</div>' +
-        '</div>' +
-    '</div>'
-    $('#company-card-list').append(companyCard);
+    if (company != "Benchmark") {
+      var companyCard =
+      '<div class="col-xl-3 col-md-4">' +
+          '<div class="card mb-4">' +
+              '<div class="card-body">' +
+                '<h5>' + company + '</h5>' +
+                '<div>' + companies[company]["start_year"] + '-' + companies[company]["end_year"] + '</div>' +
+              '</div>' +
+              '<div class="card-footer d-flex align-items-center justify-content-between">' +
+                  '<a class="small stretched-link" href="#">View Details</a>' +
+                  '<div class="small"><i class="fas fa-angle-right"></i></div>' +
+              '</div>' +
+          '</div>' +
+      '</div>'
+      $('#company-card-list').append(companyCard);
+    }
   }
 }
 
