@@ -9,11 +9,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/juliasliu/application">
-    <img src="assets/img/logo.jpg" alt="Greycroft_Logo" width="490" height="124">
-  </a>
+  
 
-  <h3 align="center">Greycroft Dashboard</h3>
+  <h3 align="center">Dashboard</h3>
 
   <p align="center">
     Data analysis and benchmarking of companies using raw customer revenue inputs and financial statements
@@ -62,7 +60,6 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<img src="assets/img/screenshot.png" alt="Company_Page_Screenshot" width="1000" height="490">
 
 
 ### Built With
@@ -128,10 +125,6 @@ To get a local copy up on your own computer and running follow these simple step
     │   ├── benchmark.py        # Benchmark script for multiple companies
     │   ├── helpers.py          # helper methods for Python scripts
     │   └── ...                 # etc.
-    ├── inputs                  # example company raw input data in the form of Excel spreadsheets
-    |   ├── Icertis.xlsx        # raw input data for Icertis
-    │   ├── Quantum Metric.xlsx # raw input data for Quantum Metric
-    │   └── ...                 # etc.
     ├── js                      # JS scripts for the website frontend
     |   ├── analysis.js         # for uploading raw input data and displaying data and graphs in HTML pages
     │   ├── scripts.js          # preloaded script from the Start Bootstrap dashboard template
@@ -176,7 +169,7 @@ See the [open issues](https://github.com/juliasliu/application/issues) for a lis
 <!-- LICENSE -->
 ## License
 
-This project is under Greycroft.
+This project is under .
 
 
 
